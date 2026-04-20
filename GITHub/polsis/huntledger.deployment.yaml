@@ -1,0 +1,32 @@
+# HuntLedger — deployment declaration for Polsis / automated hosting (v1)
+#
+# Syfte: ge plattformen en maskinläsbar beskrivning av hur repot byggs och körs
+# när den importeras från GitHub. Exakta fältnamn i Polsis kan skilja sig;
+# anpassa då mappningen i Polsis import-UI eller pipeline.
+#
+# apiVersion: huntledger.dev/polsishosting/v1
+apiVersion: huntledger.dev/polsishosting/v1
+kind: BusinessDeployment
+metadata:
+  name: huntledger
+  description: HuntLedger — digital logbook (React + Fastify)
+spec:
+  runtime:
+    node: '>=20.10'
+  services:
+    - id: api
+      type: node
+      dockerfile: apps/api/Dockerfile
+      port: 8080
+      healthPath: /health
+      env:
+        - PORT
+        - HOST
+        - CORS_ORIGIN
+        - NODE_ENV
+    - id: web
+      type: static
+      dockerfile: GITHub/docker/Dockerfile.web
+      port: 8080
+      env:
+        - VITE_API_BASE_URL
