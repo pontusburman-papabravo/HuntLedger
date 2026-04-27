@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 130" width="120" height="130">
+  <!-- Shield background -->
+  <path d="M60 6 L106 24 L106 70 Q106 108 60 124 Q14 108 14 70 L14 24 Z" fill="#1a2e1a"/>
+  <!-- Shield outer border -->
+  <path d="M60 6 L106 24 L106 70 Q106 108 60 124 Q14 108 14 70 L14 24 Z" fill="none" stroke="#c8a96e" stroke-width="2.5"/>
+  <!-- Shield inner border -->
+  <path d="M60 14 L99 30 L99 70 Q99 103 60 117 Q21 103 21 70 L21 30 Z" fill="none" stroke="#c8a96e" stroke-width="0.8" stroke-dasharray="3 2"/>
+
+  <!-- Title at top -->
+  <text x="60" y="31" text-anchor="middle" fill="#c8a96e" font-family="Georgia,Times New Roman,serif" font-size="8.5" font-weight="700" letter-spacing="1">VILDSVINSPASSET</text>
+
+  <!-- Boar head (front view, aggressive) -->
+  <!-- Main head shape -->
+  <ellipse cx="60" cy="70" rx="19" ry="16" stroke="#c8a96e" stroke-width="2" fill="none"/>
+  <!-- Wide flat snout -->
+  <ellipse cx="60" cy="80" rx="13" ry="8.5" stroke="#c8a96e" stroke-width="2" fill="none"/>
+  <!-- Nostrils -->
+  <circle cx="55.5" cy="81" r="2.2" fill="#c8a96e"/>
+  <circle cx="64.5" cy="81" r="2.2" fill="#c8a96e"/>
+  <!-- Eyes (small, set wide apart) -->
+  <circle cx="49" cy="63" r="2.2" fill="#c8a96e"/>
+  <circle cx="71" cy="63" r="2.2" fill="#c8a96e"/>
+  <!-- Brow ridge (aggressive) -->
+  <path d="M44 59 Q49 56 54 59" stroke="#c8a96e" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <path d="M66 59 Q71 56 76 59" stroke="#c8a96e" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- Tusks (curved upward) -->
+  <path d="M49 85 Q44 96 42 102" stroke="#c8a96e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M71 85 Q76 96 78 102" stroke="#c8a96e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- Ears (pointed) -->
+  <path d="M42 60 Q38 46 45 43 Q51 50 47 62" stroke="#c8a96e" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M78 60 Q82 46 75 43 Q69 50 73 62" stroke="#c8a96e" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Mane / bristles suggestion -->
+  <path d="M42 66 Q38 70 40 74" stroke="#c8a96e" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <path d="M78 66 Q82 70 80 74" stroke="#c8a96e" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+</svg>

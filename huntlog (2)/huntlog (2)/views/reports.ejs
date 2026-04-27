@@ -1,0 +1,71 @@
+<%- include('layout-top') %>
+
+    <header class="page-header">
+        <h1><%= title %></h1>
+        <p><%= lang === 'en' ? 'View your hunting statistics and reports' : 'Se dina jaktstatistiker och rapporter' %></p>
+    </header>
+
+    <div class="card">
+        <div class="card-title"><%= lang === 'en' ? 'Statistics' : 'Statistik' %></div>
+        <p>
+            <% if (lang === 'en') { %>
+                Reports feature is coming soon. You'll be able to view detailed statistics about your hunting sessions,
+                weapon performance, and seasonal trends.
+            <% } else { %>
+                Rapportfunktionen kommer snart. Du kommer kunna se detaljerad statistik om dina jaksessioner,
+                vapenprestanda och säsongtrender.
+            <% } %>
+        </p>
+    </div>
+
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="stat-value">—</div>
+            <div class="stat-label"><%= lang === 'en' ? 'Sessions This Year' : 'Sessioner i år' %></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">—</div>
+            <div class="stat-label"><%= lang === 'en' ? 'Most Used Location' : 'Mest använd plats' %></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">—</div>
+            <div class="stat-label"><%= lang === 'en' ? 'Most Used Weapon' : 'Mest använt vapen' %></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title"><%= lang === 'en' ? 'Coming Soon' : 'Kommer snart' %></div>
+        <ul class="reports-list">
+            <li>
+                <% if (lang === 'en') { %>
+                    Session trends and activity charts
+                <% } else { %>
+                    Sessionstrender och aktivitetsdiagram
+                <% } %>
+            </li>
+            <li>
+                <% if (lang === 'en') { %>
+                    Weapon usage and maintenance reports
+                <% } else { %>
+                    Vapenrapporter och underhållesdata
+                <% } %>
+            </li>
+            <li>
+                <% if (lang === 'en') { %>
+                    Seasonal performance analysis
+                <% } else { %>
+                    Säsonganalys och prestanda
+                <% } %>
+            </li>
+            <li>
+                <% if (lang === 'en') { %>
+                    PDF export functionality
+                <% } else { %>
+                    PDF-exportfunktion
+                <% } %>
+            </li>
+        </ul>
+    </div>
+
+<%- include('layout-bottom') %>
+

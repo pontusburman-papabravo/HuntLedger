@@ -1,0 +1,680 @@
+<%- include('layout-top') %>
+
+<% if (action === 'detail' || action === 'edit' || action === 'new') { %>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+<style>
+/* ── Map section — unique to locations view ───────────────────────────── */
+/* detail-card, detail-field, detail-label, detail-value, detail-grid,     */
+/* back-nav, btn-sm now inherited from main.css                            */
+.map-section {
+    margin-top: 1.5rem;
+    border: 1px solid var(--wheat);
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+}
+.map-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--cream);
+    cursor: pointer;
+    user-select: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    font-size: 0.9rem;
+    color: var(--ink);
+    transition: background 0.15s;
+    outline: none;
+}
+.map-toggle-row:hover { background: #ece7db; }
+.map-toggle-icon { font-size: 1rem; flex-shrink: 0; }
+.map-toggle-label { flex: 1; font-weight: 500; }
+.map-toggle-chevron {
+    font-size: 0.7rem;
+    color: var(--moss);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+}
+.map-toggle-chevron.open { transform: rotate(180deg); }
+.map-body { display: none; }
+.map-body.open { display: block; }
+#locationMap {
+    width: 100%;
+    height: 220px;
+    z-index: 1;
+    display: block;
+}
+.map-height-edit { height: 300px; }
+.map-controls {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    background: var(--cream);
+    border-top: 1px solid var(--wheat);
+    flex-wrap: wrap;
+    align-items: center;
+}
+.map-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--moss);
+    border-radius: 6px;
+    background: white;
+    color: var(--forest);
+    font-size: 0.82rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+.map-btn:hover { background: var(--moss); color: white; }
+.map-btn.active { background: var(--amber); color: white; border-color: var(--amber); }
+.map-btn:disabled { opacity: 0.5; cursor: default; }
+.map-pin-hint {
+    font-size: 0.78rem;
+    color: var(--amber);
+    display: none;
+    padding: 0.3rem 1rem;
+    background: #fff8f0;
+    border-top: 1px solid #f0d8b0;
+}
+.map-pin-hint.visible { display: block; }
+.map-coords-row {
+    font-size: 0.78rem;
+    color: var(--moss);
+    padding: 0.375rem 1rem;
+    background: var(--cream);
+    border-top: 1px solid var(--wheat);
+    display: none;
+}
+.map-coords-row.visible { display: block; }
+@media (max-width: 480px) {
+    #locationMap { height: 200px; }
+    .map-height-edit { height: 260px; }
+}
+</style>
+<% } %>
+
+    <% if (action === 'list') { %>
+    <header class="page-header">
+        <h1><%= title %></h1>
+        <p><%= lang === 'en' ? 'Manage your hunting locations' : 'Hantera dina jaktplatser' %></p>
+        <div class="button-group">
+            <a href="/locations/new?lang=<%= lang %>" class="btn btn-primary">
+                <%= lang === 'en' ? '+ New Location' : '+ Ny plats' %>
+            </a>
+        </div>
+    </header>
+    <% } else { %>
+    <div class="back-nav">
+        <a href="/locations?lang=<%= lang %>" class="btn btn-secondary btn-sm">
+            ← <%= lang === 'en' ? 'Locations' : 'Platser' %>
+        </a>
+    </div>
+    <header class="page-header">
+        <h1><%= title %></h1>
+    </header>
+    <% } %>
+
+    <% if (action === 'list') { %>
+        <!-- List View -->
+        <% if (locations.length === 0) { %>
+            <div class="empty-state">
+                <div class="empty-state-icon">📍</div>
+                <div class="empty-state-title"><%= lang === 'en' ? 'No locations yet' : 'Inga platser ännu' %></div>
+                <div class="empty-state-text">
+                    <%= lang === 'en' ? 'Create your first hunting location to get started.' : 'Skapa din första jaktplats för att komma igång.' %>
+                </div>
+                <a href="/locations/new?lang=<%= lang %>" class="btn btn-primary">
+                    <%= lang === 'en' ? '+ Add Location' : '+ Lägg till plats' %>
+                </a>
+            </div>
+        <% } else { %>
+            <!-- Desktop table -->
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th><%= lang === 'en' ? 'Name' : 'Namn' %></th>
+                            <th><%= lang === 'en' ? 'Type' : 'Typ' %></th>
+                            <th><%= lang === 'en' ? 'County' : 'Län' %></th>
+                            <th><%= lang === 'en' ? 'Address' : 'Adress' %></th>
+                            <th><%= lang === 'en' ? 'Actions' : 'Åtgärder' %></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% locations.forEach(loc => { %>
+                            <tr>
+                                <td>
+                                    <a href="/locations/<%= loc.id %>?lang=<%= lang %>" style="font-weight:600; color:var(--forest); text-decoration:none;">
+                                        <%= loc.name %>
+                                        <% if (loc.latitude && loc.longitude) { %><span style="font-size:0.75rem; margin-left:4px;">📍</span><% } %>
+                                    </a>
+                                </td>
+                                <td>
+                                    <%
+                                        const typeLabel = {
+                                            'skjutbana': lang === 'en' ? 'Shooting Range' : 'Skjutbana',
+                                            'jaktmark': lang === 'en' ? 'Hunting Ground' : 'Jaktmark',
+                                            'hem': lang === 'en' ? 'Home' : 'Hem',
+                                            'annan': lang === 'en' ? 'Other' : 'Annan'
+                                        };
+                                    %>
+                                    <%= typeLabel[loc.location_type] || loc.location_type %>
+                                </td>
+                                <td><%= loc.county || '-' %></td>
+                                <td><%= loc.address || '-' %></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a href="/locations/<%= loc.id %>?lang=<%= lang %>" class="action-btn">
+                                            <%= lang === 'en' ? 'View' : 'Visa' %>
+                                        </a>
+                                        <a href="/locations/<%= loc.id %>/edit?lang=<%= lang %>" class="action-btn">
+                                            <%= lang === 'en' ? 'Edit' : 'Redigera' %>
+                                        </a>
+                                        <form method="POST" action="/locations/<%= loc.id %>/delete" class="form-inline">
+                                            <button type="submit" class="action-btn" onclick="return confirm('<%= lang === 'en' ? 'Delete this location?' : 'Ta bort denna plats?' %>')">
+                                                <%= lang === 'en' ? 'Delete' : 'Ta bort' %>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile card list -->
+            <div class="mobile-card-list">
+                <% locations.forEach(loc => { %>
+                    <%
+                        const typeLabelMobile = {
+                            'skjutbana': lang === 'en' ? 'Shooting Range' : 'Skjutbana',
+                            'jaktmark': lang === 'en' ? 'Hunting Ground' : 'Jaktmark',
+                            'hem': lang === 'en' ? 'Home' : 'Hem',
+                            'annan': lang === 'en' ? 'Other' : 'Annan'
+                        };
+                    %>
+                    <div class="mobile-card-item">
+                        <a href="/locations/<%= loc.id %>?lang=<%= lang %>" style="text-decoration:none; color:inherit;">
+                            <div class="mobile-card-title">
+                                <%= loc.name %>
+                                <% if (loc.latitude && loc.longitude) { %> 📍<% } %>
+                            </div>
+                        </a>
+                        <div class="mobile-card-meta">
+                            <span><%= typeLabelMobile[loc.location_type] || loc.location_type %></span>
+                            <% if (loc.county) { %><span><%= loc.county %></span><% } %>
+                            <% if (loc.address) { %><span><%= loc.address %></span><% } %>
+                        </div>
+                        <div class="mobile-card-actions">
+                            <a href="/locations/<%= loc.id %>?lang=<%= lang %>" class="action-btn">
+                                <%= lang === 'en' ? 'View' : 'Visa' %>
+                            </a>
+                            <a href="/locations/<%= loc.id %>/edit?lang=<%= lang %>" class="action-btn">
+                                <%= lang === 'en' ? 'Edit' : 'Redigera' %>
+                            </a>
+                            <form method="POST" action="/locations/<%= loc.id %>/delete" class="form-inline-flex">
+                                <button type="submit" class="action-btn action-btn-full" onclick="return confirm('<%= lang === 'en' ? 'Delete this location?' : 'Ta bort denna plats?' %>')">
+                                    <%= lang === 'en' ? 'Delete' : 'Ta bort' %>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                <% }); %>
+            </div>
+        <% } %>
+
+    <% } else if (action === 'detail') { %>
+        <!-- Detail View -->
+        <div class="detail-card">
+            <%
+                const typeLabelDetail = {
+                    'skjutbana': lang === 'en' ? 'Shooting Range' : 'Skjutbana',
+                    'jaktmark': lang === 'en' ? 'Hunting Ground' : 'Jaktmark',
+                    'hem': lang === 'en' ? 'Home' : 'Hem',
+                    'annan': lang === 'en' ? 'Other' : 'Annan'
+                };
+            %>
+            <div class="detail-grid">
+                <div class="detail-field">
+                    <div class="detail-label"><%= lang === 'en' ? 'Type' : 'Typ' %></div>
+                    <div class="detail-value"><%= typeLabelDetail[location.location_type] || location.location_type %></div>
+                </div>
+                <% if (location.county) { %>
+                <div class="detail-field">
+                    <div class="detail-label"><%= lang === 'en' ? 'County' : 'Län' %></div>
+                    <div class="detail-value"><%= location.county %></div>
+                </div>
+                <% } %>
+                <% if (location.address) { %>
+                <div class="detail-field">
+                    <div class="detail-label"><%= lang === 'en' ? 'Address' : 'Adress' %></div>
+                    <div class="detail-value"><%= location.address %></div>
+                </div>
+                <% } %>
+                <% if (location.country) { %>
+                <div class="detail-field">
+                    <div class="detail-label"><%= lang === 'en' ? 'Country' : 'Land' %></div>
+                    <div class="detail-value"><%= location.country %></div>
+                </div>
+                <% } %>
+                <% if (location.county_board_id) { %>
+                <div class="detail-field">
+                    <div class="detail-label"><%= lang === 'en' ? 'County board ID' : 'Länsstyrelsens ID' %></div>
+                    <div class="detail-value"><%= location.county_board_id %></div>
+                </div>
+                <% } %>
+                <% if (location.property_designation) { %>
+                <div class="detail-field">
+                    <div class="detail-label"><%= lang === 'en' ? 'Property designation' : 'Fastighetsbeteckning' %></div>
+                    <div class="detail-value"><%= location.property_designation %></div>
+                </div>
+                <% } %>
+            </div>
+            <% if (location.notes) { %>
+            <div class="detail-field" style="margin-top:0.5rem;">
+                <div class="detail-label"><%= lang === 'en' ? 'Notes' : 'Anteckningar' %></div>
+                <div class="detail-value" style="white-space:pre-wrap;"><%= location.notes %></div>
+            </div>
+            <% } %>
+        </div>
+
+        <!-- Map Section (detail) -->
+        <div class="map-section" id="mapSection">
+            <button class="map-toggle-row" id="mapToggle" type="button" aria-expanded="false" aria-controls="mapBody">
+                <span class="map-toggle-icon">📍</span>
+                <span class="map-toggle-label" id="mapToggleLabel">
+                    <% if (location.latitude && location.longitude) { %>
+                        <%= lang === 'en' ? 'Coordinates saved' : 'Koordinater sparade' %>
+                    <% } else { %>
+                        <%= lang === 'en' ? 'Add map position' : 'Lägg till kartposition' %>
+                    <% } %>
+                </span>
+                <span class="map-toggle-chevron" id="mapChevron">▼</span>
+            </button>
+            <div class="map-body" id="mapBody">
+                <div id="locationMap"></div>
+                <% if (!location.latitude || !location.longitude) { %>
+                <div style="padding:0.75rem 1rem; background:var(--cream); border-top:1px solid var(--wheat); font-size:0.85rem; color:var(--moss);">
+                    <%= lang === 'en' ? 'No coordinates set for this location.' : 'Inga koordinater satta för denna plats.' %>
+                    <a href="/locations/<%= location.id %>/edit?lang=<%= lang %>" style="color:var(--forest); font-weight:500; margin-left:0.5rem;">
+                        <%= lang === 'en' ? 'Edit to add →' : 'Redigera för att lägga till →' %>
+                    </a>
+                </div>
+                <% } else { %>
+                <div class="map-coords-row visible">
+                    <%= lang === 'en' ? 'Lat' : 'Lat' %>: <%= parseFloat(location.latitude).toFixed(6) %>,
+                    <%= lang === 'en' ? 'Lng' : 'Lng' %>: <%= parseFloat(location.longitude).toFixed(6) %>
+                </div>
+                <% } %>
+            </div>
+        </div>
+
+        <div class="button-group" style="margin-top:1.5rem;">
+            <a href="/locations/<%= location.id %>/edit?lang=<%= lang %>" class="btn btn-primary">
+                <%= lang === 'en' ? 'Edit' : 'Redigera' %>
+            </a>
+            <form method="POST" action="/locations/<%= location.id %>/delete" class="form-inline">
+                <button type="submit" class="btn btn-secondary"
+                    onclick="return confirm('<%= lang === 'en' ? 'Delete this location?' : 'Ta bort denna plats?' %>')">
+                    <%= lang === 'en' ? 'Delete' : 'Ta bort' %>
+                </button>
+            </form>
+        </div>
+
+    <% } else if (action === 'new' || action === 'edit') { %>
+        <!-- Form View -->
+        <div class="card">
+            <form method="POST" action="<%= action === 'new' ? '/locations' : `/locations/${location.id}/update` %>">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label"><%= lang === 'en' ? 'Name' : 'Namn' %> *</label>
+                        <input type="text" name="name" class="form-control" value="<%= location.name || '' %>" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><%= lang === 'en' ? 'Type' : 'Typ' %> *</label>
+                        <select name="location_type" class="form-control" required>
+                            <option value="">-- <%= lang === 'en' ? 'Select type' : 'Välj typ' %> --</option>
+                            <option value="skjutbana" <%= location.location_type === 'skjutbana' ? 'selected' : '' %>>
+                                <%= lang === 'en' ? 'Shooting Range' : 'Skjutbana' %>
+                            </option>
+                            <option value="jaktmark" <%= location.location_type === 'jaktmark' ? 'selected' : '' %>>
+                                <%= lang === 'en' ? 'Hunting Ground' : 'Jaktmark' %>
+                            </option>
+                            <option value="hem" <%= location.location_type === 'hem' ? 'selected' : '' %>>
+                                <%= lang === 'en' ? 'Home' : 'Hem' %>
+                            </option>
+                            <option value="annan" <%= location.location_type === 'annan' ? 'selected' : '' %>>
+                                <%= lang === 'en' ? 'Other' : 'Annan' %>
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label"><%= lang === 'en' ? 'Address' : 'Adress' %></label>
+                    <input type="text" name="address" class="form-control" value="<%= location.address || '' %>" placeholder="<%= lang === 'en' ? 'Street address, postal code, etc.' : 'Gatuadress, postnummer, etc.' %>">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label"><%= lang === 'en' ? 'County' : 'Län' %></label>
+                        <input type="text" name="county" class="form-control" value="<%= location.county || '' %>" placeholder="<%= lang === 'en' ? 'e.g., Västra Götaland' : 't.ex. Västra Götaland' %>">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><%= lang === 'en' ? 'Country' : 'Land' %></label>
+                        <input type="text" name="country" class="form-control" value="<%= location.country || 'Sverige' %>">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label"><%= lang === 'en' ? 'County board ID' : 'Länsstyrelsens ID' %></label>
+                        <input type="text" name="county_board_id" class="form-control" value="<%= location.county_board_id || '' %>" placeholder="<%= lang === 'en' ? 'e.g. 0901-K3' : 't.ex. 0901-K3' %>">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><%= lang === 'en' ? 'Property designation' : 'Fastighetsbeteckning' %></label>
+                        <input type="text" name="property_designation" class="form-control" value="<%= location.property_designation || '' %>" placeholder="<%= lang === 'en' ? 'e.g. Sollentuna 2:1' : 't.ex. Sollentuna 2:1' %>">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label"><%= lang === 'en' ? 'Notes' : 'Anteckningar' %></label>
+                    <textarea name="notes" class="form-control" rows="4" placeholder="<%= lang === 'en' ? 'Add any notes about this location...' : 'Lägg till anteckningar om denna plats...' %>"><%= location.notes || '' %></textarea>
+                </div>
+
+                <!-- Coordinate inputs (also updated by map) -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label"><%= lang === 'en' ? 'Latitude' : 'Latitud' %></label>
+                        <input type="number" name="latitude" id="latInput" class="form-control" step="0.000001" value="<%= location.latitude || '' %>" placeholder="59.329300">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><%= lang === 'en' ? 'Longitude' : 'Longitud' %></label>
+                        <input type="number" name="longitude" id="lngInput" class="form-control" step="0.000001" value="<%= location.longitude || '' %>" placeholder="18.068600">
+                    </div>
+                </div>
+
+                <!-- Map Section (edit/new) -->
+                <div class="map-section" id="mapSection">
+                    <button class="map-toggle-row" id="mapToggle" type="button" aria-expanded="false" aria-controls="mapBody">
+                        <span class="map-toggle-icon">📍</span>
+                        <span class="map-toggle-label" id="mapToggleLabel">
+                            <% if (location.latitude && location.longitude) { %>
+                                <%= lang === 'en' ? 'Coordinates saved — click to view/edit on map' : 'Koordinater sparade — klicka för att visa/redigera på karta' %>
+                            <% } else { %>
+                                <%= lang === 'en' ? 'Add map position' : 'Lägg till kartposition' %>
+                            <% } %>
+                        </span>
+                        <span class="map-toggle-chevron" id="mapChevron">▼</span>
+                    </button>
+                    <div class="map-body" id="mapBody">
+                        <div id="locationMap" class="map-height-edit"></div>
+                        <div class="map-pin-hint" id="pinHint">
+                            <%= lang === 'en' ? '👆 Tap on the map to place the pin' : '👆 Tryck på kartan för att sätta pin' %>
+                        </div>
+                        <div class="map-controls">
+                            <button type="button" class="map-btn" id="setPinBtn">
+                                📌 <%= lang === 'en' ? 'Set pin' : 'Sätt pin' %>
+                            </button>
+                            <button type="button" class="map-btn" id="gpsBtn">
+                                🎯 <%= lang === 'en' ? 'Use my position' : 'Använd min position' %>
+                            </button>
+                            <button type="button" class="map-btn" id="clearPinBtn" style="margin-left:auto;">
+                                🗑 <%= lang === 'en' ? 'Clear pin' : 'Rensa pin' %>
+                            </button>
+                        </div>
+                        <div class="map-coords-row" id="coordsDisplay"></div>
+                    </div>
+                </div>
+
+                <div class="button-group" style="margin-top:1.5rem;">
+                    <button type="submit" class="btn btn-primary">
+                        <%= action === 'new'
+                            ? (lang === 'en' ? 'Create Location' : 'Skapa plats')
+                            : (lang === 'en' ? 'Update Location' : 'Uppdatera plats') %>
+                    </button>
+                    <a href="/locations?lang=<%= lang %>" class="btn btn-secondary">
+                        <%= lang === 'en' ? 'Cancel' : 'Avbryt' %>
+                    </a>
+                </div>
+            </form>
+        </div>
+    <% } %>
+
+<% if (action === 'detail' || action === 'edit' || action === 'new') { %>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+(function() {
+    var lang = '<%= lang %>';
+    var action = '<%= action %>';
+    var initLat = <%= (typeof location !== 'undefined' && location && location.latitude) ? parseFloat(location.latitude) : 'null' %>;
+    var initLng = <%= (typeof location !== 'undefined' && location && location.longitude) ? parseFloat(location.longitude) : 'null' %>;
+
+    var leafletMap = null;
+    var currentMarker = null;
+    var mapInitialized = false;
+    var pinModeActive = false;
+
+    var toggleBtn = document.getElementById('mapToggle');
+    var mapBody = document.getElementById('mapBody');
+    var chevron = document.getElementById('mapChevron');
+    var mapContainer = document.getElementById('locationMap');
+
+    // Toggle expand/collapse
+    toggleBtn.addEventListener('click', function() {
+        var isOpen = mapBody.classList.contains('open');
+        if (isOpen) {
+            mapBody.classList.remove('open');
+            chevron.classList.remove('open');
+            toggleBtn.setAttribute('aria-expanded', 'false');
+        } else {
+            mapBody.classList.add('open');
+            chevron.classList.add('open');
+            toggleBtn.setAttribute('aria-expanded', 'true');
+            // Initialize map on first open
+            if (!mapInitialized) {
+                // Small delay so container is visible and sized
+                setTimeout(function() { initMap(); }, 50);
+            } else {
+                leafletMap.invalidateSize();
+            }
+        }
+    });
+
+    function initMap() {
+        if (mapInitialized) return;
+        mapInitialized = true;
+
+        var centerLat = initLat || 62.0;
+        var centerLng = initLng || 15.0;
+        var zoom = (initLat && initLng) ? 13 : 5;
+
+        leafletMap = L.map('locationMap', {
+            scrollWheelZoom: false,
+            tap: true
+        }).setView([centerLat, centerLng], zoom);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors',
+            maxZoom: 19
+        }).addTo(leafletMap);
+
+        // Place pin if coords exist
+        if (initLat && initLng) {
+            currentMarker = L.marker([initLat, initLng]).addTo(leafletMap);
+            if (action === 'edit' || action === 'new') {
+                updateCoordsDisplay(initLat, initLng);
+            }
+        }
+
+        // Click handler for edit/new mode
+        if (action === 'edit' || action === 'new') {
+            leafletMap.on('click', function(e) {
+                if (!pinModeActive) return;
+                setPin(e.latlng.lat, e.latlng.lng);
+                deactivatePinMode();
+            });
+        }
+
+        leafletMap.invalidateSize();
+    }
+
+    function setPin(lat, lng) {
+        if (currentMarker) {
+            currentMarker.setLatLng([lat, lng]);
+        } else {
+            currentMarker = L.marker([lat, lng]).addTo(leafletMap);
+        }
+        leafletMap.setView([lat, lng], Math.max(leafletMap.getZoom(), 13));
+
+        // Update form inputs
+        var latInput = document.getElementById('latInput');
+        var lngInput = document.getElementById('lngInput');
+        if (latInput) latInput.value = lat.toFixed(6);
+        if (lngInput) lngInput.value = lng.toFixed(6);
+
+        updateCoordsDisplay(lat, lng);
+    }
+
+    function updateCoordsDisplay(lat, lng) {
+        var display = document.getElementById('coordsDisplay');
+        if (!display) return;
+        display.textContent = 'Lat: ' + lat.toFixed(6) + ',  Lng: ' + lng.toFixed(6);
+        display.classList.add('visible');
+    }
+
+    function activatePinMode() {
+        pinModeActive = true;
+        var btn = document.getElementById('setPinBtn');
+        if (btn) {
+            btn.classList.add('active');
+            btn.textContent = (lang === 'en') ? '✕ Cancel' : '✕ Avbryt';
+        }
+        var hint = document.getElementById('pinHint');
+        if (hint) hint.classList.add('visible');
+        if (leafletMap) leafletMap.getContainer().style.cursor = 'crosshair';
+    }
+
+    function deactivatePinMode() {
+        pinModeActive = false;
+        var btn = document.getElementById('setPinBtn');
+        if (btn) {
+            btn.classList.remove('active');
+            btn.textContent = '📌 ' + (lang === 'en' ? 'Set pin' : 'Sätt pin');
+        }
+        var hint = document.getElementById('pinHint');
+        if (hint) hint.classList.remove('visible');
+        if (leafletMap) leafletMap.getContainer().style.cursor = '';
+    }
+
+    // Set pin button
+    var setPinBtn = document.getElementById('setPinBtn');
+    if (setPinBtn) {
+        setPinBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (!mapInitialized) {
+                // Open map first if not open
+                mapBody.classList.add('open');
+                chevron.classList.add('open');
+                toggleBtn.setAttribute('aria-expanded', 'true');
+                setTimeout(function() { initMap(); activatePinMode(); }, 60);
+                return;
+            }
+            if (pinModeActive) {
+                deactivatePinMode();
+            } else {
+                activatePinMode();
+            }
+        });
+    }
+
+    // GPS button
+    var gpsBtn = document.getElementById('gpsBtn');
+    if (gpsBtn) {
+        gpsBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (!navigator.geolocation) {
+                alert(lang === 'en' ? 'Geolocation is not supported by your browser.' : 'Din webbläsare stöder inte geolokalisering.');
+                return;
+            }
+            gpsBtn.disabled = true;
+            gpsBtn.textContent = lang === 'en' ? '⏳ Getting position...' : '⏳ Hämtar position...';
+            navigator.geolocation.getCurrentPosition(
+                function(pos) {
+                    gpsBtn.disabled = false;
+                    gpsBtn.textContent = '🎯 ' + (lang === 'en' ? 'Use my position' : 'Använd min position');
+                    // Make sure map is open
+                    if (!mapBody.classList.contains('open')) {
+                        mapBody.classList.add('open');
+                        chevron.classList.add('open');
+                        toggleBtn.setAttribute('aria-expanded', 'true');
+                    }
+                    if (!mapInitialized) {
+                        // Initialize with GPS position
+                        initLat = pos.coords.latitude;
+                        initLng = pos.coords.longitude;
+                        setTimeout(function() { initMap(); setPin(pos.coords.latitude, pos.coords.longitude); }, 60);
+                    } else {
+                        setPin(pos.coords.latitude, pos.coords.longitude);
+                    }
+                },
+                function(err) {
+                    gpsBtn.disabled = false;
+                    gpsBtn.textContent = '🎯 ' + (lang === 'en' ? 'Use my position' : 'Använd min position');
+                    var msg = lang === 'en' ? 'Could not get your location. Please check browser permissions.' : 'Kunde inte hämta din position. Kontrollera webbläsarens behörigheter.';
+                    alert(msg);
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        });
+    }
+
+    // Clear pin button
+    var clearPinBtn = document.getElementById('clearPinBtn');
+    if (clearPinBtn) {
+        clearPinBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (currentMarker && leafletMap) {
+                leafletMap.removeLayer(currentMarker);
+                currentMarker = null;
+            }
+            var latInput = document.getElementById('latInput');
+            var lngInput = document.getElementById('lngInput');
+            if (latInput) latInput.value = '';
+            if (lngInput) lngInput.value = '';
+            var display = document.getElementById('coordsDisplay');
+            if (display) { display.textContent = ''; display.classList.remove('visible'); }
+        });
+    }
+
+    // Sync manual coord inputs → map
+    function syncInputsToMap() {
+        var latInput = document.getElementById('latInput');
+        var lngInput = document.getElementById('lngInput');
+        if (!latInput || !lngInput) return;
+        var lat = parseFloat(latInput.value);
+        var lng = parseFloat(lngInput.value);
+        if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+            if (!mapInitialized) return;
+            setPin(lat, lng);
+        }
+    }
+
+    var latInput = document.getElementById('latInput');
+    var lngInput = document.getElementById('lngInput');
+    if (latInput) latInput.addEventListener('change', syncInputsToMap);
+    if (lngInput) lngInput.addEventListener('change', syncInputsToMap);
+
+})();
+</script>
+<% } %>
+
+<%- include('layout-bottom') %>

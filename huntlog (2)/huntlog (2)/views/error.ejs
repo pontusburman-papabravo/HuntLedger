@@ -1,0 +1,17 @@
+<%- include('layout-top') %>
+
+    <header class="page-header">
+        <h1>⚠️ <%= lang === 'en' ? 'Error' : 'Fel' %></h1>
+    </header>
+
+    <div class="card">
+        <p><%= message %></p>
+        <div class="button-group">
+            <a href="/?lang=<%= lang %>" class="btn btn-primary">
+                <%= lang === 'en' ? 'Back to Dashboard' : 'Tillbaka till övresikten' %>
+            </a>
+        </div>
+    </div>
+
+<%- include('layout-bottom') %>
+

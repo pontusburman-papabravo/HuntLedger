@@ -1,0 +1,20 @@
+{
+  "name": "huntlog",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "description": "HuntLedger - Digital hunting journal for Swedish hunters",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "node bootstrap.mjs",
+    "start": "sh _start.sh",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "ejs": "^3.1.9",
+    "pg": "^8.10.0",
+    "body-parser": "^1.20.2"
+  }
+}

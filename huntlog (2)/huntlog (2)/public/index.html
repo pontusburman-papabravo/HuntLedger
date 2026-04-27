@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1a2e1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="HuntLedger">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
+
+    <!-- SEO -->
+    <title>HuntLedger – Digital jaktdagbok för svenska jägare</title>
+    <meta name="description" content="HuntLedger – digital jaktdagbok för svenska jägare. Logga jakter, spåra statistik, hantera vapenunderhåll och samla dina jakterfarenheter på ett ställe. Betaanmälan öppen nu.">
+    <meta name="keywords" content="digital jaktdagbok, jakt app, jaktlogg, svenska jägare, jaktstatistik, vapenunderhåll, jaktbok, huntledger">
+    <link rel="canonical" href="https://huntledger.se/">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://huntledger.se/">
+    <meta property="og:title" content="HuntLedger – Digital jaktdagbok för svenska jägare">
+    <meta property="og:description" content="Logga jakter, spåra statistik och hantera vapenunderhåll – allt på ett ställe. Betaanmälan öppen nu.">
+    <meta property="og:image" content="https://huntledger.se/og-image.png">
+    <meta property="og:locale" content="sv_SE">
+    <meta property="og:site_name" content="HuntLedger">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="HuntLedger – Digital jaktdagbok för svenska jägare">
+    <meta name="twitter:description" content="Logga jakter, spåra statistik och hantera vapenunderhåll – allt på ett ställe.">
+    <meta name="twitter:image" content="https://huntledger.se/og-image.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --forest: #1a2e1a;
+            --bark:   #3d2b1f;
+            --moss:   #4a6741;
+            --sage:   #7d9a6e;
+            --wheat:  #d4c5a0;
+            --cream:  #f5f0e8;
+            --bone:   #faf8f4;
+            --amber:  #c8873e;
+            --rust:   #a85d32;
+            --ink:    #1c1c1c;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bone);
+            color: var(--ink);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4 { font-family: 'Space Grotesk', sans-serif; }
+
+        /* ── Nav ─────────────────────────────────── */
+        nav {
+            position: fixed;
+            top: 0; width: 100%;
+            z-index: 100;
+            padding: 1.25rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(250, 248, 244, 0.88);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(61, 43, 31, 0.08);
+        }
+        .logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.35rem;
+            color: var(--forest);
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .logo-icon {
+            width: 28px; height: 28px;
+            background: var(--forest);
+            border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--wheat);
+            font-size: 14px;
+        }
+        .nav-cta {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--moss);
+            text-decoration: none;
+            border: 1.5px solid var(--moss);
+            padding: 0.45rem 1rem;
+            border-radius: 8px;
+            transition: background 0.15s, color 0.15s;
+        }
+        .nav-cta:hover { background: var(--moss); color: #fff; }
+
+        /* ── Nav dropdown ────────────────────────── */
+        .nav-dropdown { position: relative; }
+        .nav-dropdown-trigger {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--moss);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.45rem 0.75rem;
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            transition: background 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .nav-dropdown-trigger:hover { background: rgba(74,103,65,0.1); }
+        .nav-dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: calc(100% + 0.5rem);
+            background: #fff;
+            border: 1px solid rgba(61,43,31,0.1);
+            border-radius: 12px;
+            padding: 0.5rem;
+            min-width: 220px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            z-index: 200;
+        }
+        .nav-dropdown-menu.open { display: block; }
+        .nav-dropdown-menu a {
+            display: block;
+            font-size: 0.88rem;
+            font-weight: 500;
+            color: var(--ink);
+            text-decoration: none;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            transition: background 0.1s;
+        }
+        .nav-dropdown-menu a:hover { background: rgba(74,103,65,0.08); color: var(--moss); }
+        .nav-dropdown-divider { height: 1px; background: rgba(61,43,31,0.08); margin: 0.35rem 0.5rem; }
+
+        /* ── Hero ────────────────────────────────── */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 8rem 2rem 4rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+        }
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: 15%; right: -5%;
+            width: 480px; height: 480px;
+            background: radial-gradient(circle, rgba(200,135,62,0.07) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .hero-eyebrow {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--moss);
+            margin-bottom: 1.5rem;
+        }
+        .hero h1 {
+            font-size: clamp(2.6rem, 7vw, 5.2rem);
+            font-weight: 700;
+            line-height: 1.05;
+            color: var(--forest);
+            letter-spacing: -2px;
+            max-width: 880px;
+        }
+        .hero h1 em {
+            font-style: normal;
+            color: var(--amber);
+        }
+        .hero-sub {
+            font-size: 1.2rem;
+            color: var(--bark);
+            max-width: 520px;
+            margin-top: 1.75rem;
+            line-height: 1.75;
+            opacity: 0.85;
+        }
+
+        /* ── Signup form in hero ─────────────────── */
+        .hero-form-wrap {
+            margin-top: 3rem;
+            max-width: 480px;
+        }
+        .hero-form-label {
+            font-size: 0.88rem;
+            font-weight: 500;
+            color: var(--moss);
+            margin-bottom: 1rem;
+            display: block;
+        }
+        .signup-form {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .signup-form input {
+            width: 100%;
+            padding: 0.85rem 1.1rem;
+            border: 1.5px solid rgba(61,43,31,0.18);
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            background: #fff;
+            color: var(--ink);
+            transition: border-color 0.15s;
+            outline: none;
+        }
+        .signup-form input:focus { border-color: var(--moss); }
+        .signup-form input::placeholder { color: rgba(28,28,28,0.35); }
+        .btn-primary {
+            width: 100%;
+            padding: 0.9rem 1.5rem;
+            background: var(--forest);
+            color: var(--wheat);
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+            letter-spacing: 0.2px;
+        }
+        .btn-primary:hover { background: var(--bark); }
+        .btn-primary:active { transform: scale(0.98); }
+        .btn-primary:disabled { opacity: 0.6; cursor: default; }
+        .form-note {
+            font-size: 0.8rem;
+            color: rgba(28,28,28,0.4);
+            margin-top: 0.6rem;
+        }
+        .form-success {
+            display: none;
+            background: rgba(74,103,65,0.1);
+            border: 1.5px solid var(--moss);
+            border-radius: 10px;
+            padding: 1.1rem 1.25rem;
+            font-size: 0.95rem;
+            color: var(--forest);
+            font-weight: 500;
+        }
+        .form-error {
+            display: none;
+            background: rgba(168,93,50,0.08);
+            border: 1.5px solid var(--rust);
+            border-radius: 10px;
+            padding: 0.8rem 1.1rem;
+            font-size: 0.88rem;
+            color: var(--rust);
+        }
+
+        /* ── Problem ─────────────────────────────── */
+        .problem {
+            background: var(--forest);
+            padding: 6rem 2rem;
+            color: var(--cream);
+        }
+        .problem-inner { max-width: 900px; margin: 0 auto; }
+        .section-eyebrow {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--sage);
+            margin-bottom: 1.5rem;
+        }
+        .problem h2 {
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            font-weight: 600;
+            line-height: 1.2;
+            color: var(--wheat);
+            letter-spacing: -1px;
+        }
+        .problem p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: rgba(212,197,160,0.72);
+            margin-top: 1.5rem;
+            max-width: 680px;
+        }
+
+        /* ── Features ────────────────────────────── */
+        .features {
+            padding: 7rem 2rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .features-header { margin-bottom: 3.5rem; }
+        .features-header h2 {
+            font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+            font-weight: 700;
+            color: var(--forest);
+            letter-spacing: -1px;
+            margin-top: 0.75rem;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+        .feature-card {
+            background: var(--cream);
+            border: 1px solid rgba(61,43,31,0.08);
+            border-radius: 16px;
+            padding: 2.25rem;
+            transition: transform 0.2s ease;
+        }
+        .feature-card:hover { transform: translateY(-2px); }
+        .feature-card.featured {
+            grid-column: span 2;
+            background: var(--bark);
+            color: var(--cream);
+        }
+        .feature-card.featured .feature-num { color: var(--amber); }
+        .feature-card.featured h3 { color: var(--wheat); }
+        .feature-card.featured p { color: rgba(212,197,160,0.72); }
+        .feature-num {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--moss);
+            letter-spacing: 1px;
+            margin-bottom: 1.25rem;
+        }
+        .feature-card h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--forest);
+            margin-bottom: 0.7rem;
+            letter-spacing: -0.3px;
+        }
+        .feature-card p {
+            font-size: 0.93rem;
+            color: rgba(28,28,28,0.6);
+            line-height: 1.7;
+        }
+
+        /* ── Social proof placeholder ────────────── */
+        .social-proof {
+            background: var(--cream);
+            padding: 5rem 2rem;
+        }
+        .social-proof-inner {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .social-proof h2 {
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            font-weight: 600;
+            color: var(--forest);
+            letter-spacing: -0.5px;
+            margin-bottom: 0.75rem;
+        }
+        .social-proof-note {
+            font-size: 0.9rem;
+            color: rgba(28,28,28,0.45);
+            font-style: italic;
+        }
+        .testimonial-placeholder {
+            margin-top: 3rem;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+        .testimonial-card {
+            background: var(--bone);
+            border: 1px solid rgba(61,43,31,0.08);
+            border-radius: 14px;
+            padding: 2rem;
+            text-align: left;
+        }
+        .testimonial-card .stars {
+            color: var(--amber);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            letter-spacing: 2px;
+        }
+        .testimonial-card .quote {
+            font-size: 0.93rem;
+            color: rgba(28,28,28,0.6);
+            line-height: 1.7;
+            font-style: italic;
+        }
+        .testimonial-card .author {
+            margin-top: 1.25rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--moss);
+            font-style: normal;
+        }
+
+        /* ── Bottom CTA ──────────────────────────── */
+        .bottom-cta {
+            padding: 7rem 2rem;
+            text-align: center;
+            max-width: 620px;
+            margin: 0 auto;
+        }
+        .bottom-cta h2 {
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            font-weight: 700;
+            color: var(--forest);
+            letter-spacing: -1px;
+            line-height: 1.15;
+        }
+        .bottom-cta p {
+            font-size: 1.05rem;
+            color: rgba(28,28,28,0.6);
+            margin-top: 1rem;
+            line-height: 1.7;
+        }
+        .bottom-cta-form { margin-top: 2.5rem; }
+
+        /* ── Footer ──────────────────────────────── */
+        footer {
+            border-top: 1px solid rgba(61,43,31,0.1);
+            padding: 2.25rem 2rem;
+        }
+        .footer-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .footer-brand {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            font-size: 0.92rem;
+            color: var(--bark);
+        }
+        .footer-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+        .footer-links a {
+            font-size: 0.82rem;
+            color: rgba(28,28,28,0.45);
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+        .footer-links a:hover { color: var(--moss); }
+        .footer-copy {
+            font-size: 0.78rem;
+            color: rgba(28,28,28,0.35);
+        }
+
+        /* ── Mobile ──────────────────────────────── */
+        @media (max-width: 768px) {
+            nav { padding: 1rem 1.25rem; }
+            .hero { padding: 7rem 1.25rem 3rem; }
+            .hero h1 { letter-spacing: -1.5px; }
+            .problem { padding: 4rem 1.25rem; }
+            .features { padding: 4rem 1.25rem; }
+            .feature-grid { grid-template-columns: 1fr; }
+            .feature-card.featured { grid-column: span 1; }
+            .social-proof { padding: 4rem 1.25rem; }
+            .testimonial-placeholder { grid-template-columns: 1fr; }
+            .bottom-cta { padding: 4rem 1.25rem; }
+            .footer-inner { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── Nav ───────────────────────────────────── -->
+<nav>
+    <div class="logo">
+        <div class="logo-icon">H</div>
+        HuntLedger
+    </div>
+    <div style="display:flex;align-items:center;gap:0.75rem">
+        <div class="nav-dropdown">
+            <button class="nav-dropdown-trigger" onclick="toggleGuiderMenu(event)">Guider <span style="font-size:0.7rem;opacity:0.7">▾</span></button>
+            <div class="nav-dropdown-menu" id="guiderMenu">
+                <a href="/guider/vapenvarde">Vapenvärde</a>
+                <a href="/guider/jaktskyttemarket">Jaktskyttemärken</a>
+                <a href="/guider/handladdning">Handladdning</a>
+                <a href="/guider/jakt-och-skyttelogg">Jakt- och skyttelogg</a>
+                <a href="/guider/vapensamling">Vapensamling</a>
+                <a href="/guider/specialskytte">Specialskytte</a>
+                <div class="nav-dropdown-divider"></div>
+                <a href="/badges">Märkeskatalog</a>
+            </div>
+        </div>
+        <a class="nav-cta" href="/login">Logga in</a>
+    </div>
+</nav>
+
+<!-- ── Hero ──────────────────────────────────── -->
+<section class="hero">
+    <div class="hero-eyebrow">Digital jaktbok &middot; Betaversion</div>
+    <h1>Digital jaktdagbok<br>för <em>svenska jägare.</em></h1>
+    <p class="hero-sub">
+        Logga dina jakter, följ din statistik, hantera vapenunderhåll och samla ett livs jakterfarenheter&nbsp;&ndash; på ett ställe.
+    </p>
+
+    <div class="hero-form-wrap" id="beta">
+        <span class="hero-form-label">Anmäl intresse för betatestning &mdash; kostnadsfritt</span>
+        <a href="/register" class="btn-primary">Skapa ett konto för beta-test</a>
+    </div>
+</section>
+
+<!-- ── Problem ───────────────────────────────── -->
+<section class="problem">
+    <div class="problem-inner">
+        <div class="section-eyebrow">Varför HuntLedger</div>
+        <h2>Jaktappar visar var du är.<br>Ingen visar vad du har gjort.</h2>
+        <p>
+            De flesta jaktappar säljer kartor och GPS. Men när säsongen är slut sitter du med
+            utspridda anteckningar, bortglömda skottantal och underhåll du tänkte logga.
+            HuntLedger är för jägaren som värderar <strong style="color:var(--wheat)">minnet</strong> lika högt som jakten.
+        </p>
+    </div>
+</section>
+
+<!-- ── Features ──────────────────────────────── -->
+<section class="features">
+    <div class="features-header">
+        <div class="section-eyebrow" style="color:var(--moss)">Vad HuntLedger spårar</div>
+        <h2>Historia. Statistik. Underhåll.</h2>
+    </div>
+
+    <div class="feature-grid">
+
+        <div class="feature-card featured">
+            <div class="feature-num">01</div>
+            <h3>Jaktdagbok</h3>
+            <p>
+                Logga varje jakt med datum, plats, viltslag, väder, sällskap och dina egna anteckningar.
+                Bygg ett sökbart arkiv av ditt jaktliv som blir rikare för varje säsong.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-num">02</div>
+            <h3>Jaktstatistik</h3>
+            <p>
+                Se trender över säsonger, platser och förhållanden. Vilka marker avkastar?
+                Vilka förhållanden funkar? Låt din egen data lära dig.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-num">03</div>
+            <h3>Vapenunderhåll</h3>
+            <p>
+                Spåra skottantal, rengöringscykler, reservdelsbyten och serviceintervall för varje
+                vapen du äger. Känn ditt vapen som det förtjänar.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-num">04</div>
+            <h3>Märken &amp; Kompetens</h3>
+            <p>
+                Sätt upp mål, följ din skyttekompetens och se krav för Älgskyttemärket,
+                Björnpasset, Vildsvinspasset &amp; NJS-märket. Jakt är ett hantverk.
+            </p>
+            <a href="/badges" style="display:inline-flex;align-items:center;gap:0.35rem;margin-top:1rem;font-size:0.82rem;font-weight:600;color:var(--moss);text-decoration:none;border-bottom:1.5px solid rgba(74,103,65,0.3);padding-bottom:1px">
+                Bläddra i märkeskatalogen &rarr;
+            </a>
+        </div>
+
+    </div>
+</section>
+
+<!-- ── Social proof ───────────────────────────── -->
+<section class="social-proof">
+    <div class="social-proof-inner">
+        <div class="section-eyebrow" style="color:var(--moss)">Betatestare</div>
+        <h2>Vad jägare säger</h2>
+        <p class="social-proof-note">Omdömen samlas in under betafasen.</p>
+
+        <div class="testimonial-placeholder">
+            <div class="testimonial-card">
+                <div class="stars">★★★★★</div>
+                <p class="quote">"Precis vad jag letat efter. Äntligen en app som fokuserar på loggen, inte kartan."</p>
+                <p class="author">— Betatestare, Dalarna</p>
+            </div>
+            <div class="testimonial-card">
+                <div class="stars">★★★★★</div>
+                <p class="quote">"Vapenunderhållsdelen är guld. Vet alltid när senaste rengöringen var och hur många skott geväret haft."</p>
+                <p class="author">— Betatestare, Norrland</p>
+            </div>
+            <div class="testimonial-card">
+                <div class="stars">★★★★★</div>
+                <p class="quote">"Statistikerna efter säsongen gav mig inblick jag aldrig hade haft annars. Ren beroendeframkallande."</p>
+                <p class="author">— Betatestare, Skåne</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Bottom CTA ─────────────────────────────── -->
+<section class="bottom-cta">
+    <div class="section-eyebrow" style="color:var(--moss); text-align:center">Öppen beta</div>
+    <h2>Minnet hör jakten till.</h2>
+    <p>
+        HuntLedger byggs för jägare som tar sitt hantverk på allvar.
+        Anmäl dig nu och var med från start.
+    </p>
+    <div class="bottom-cta-form">
+        <a href="/register" class="btn-primary">Skapa ett konto för beta-test</a>
+    </div>
+</section>
+
+<!-- ── Footer ─────────────────────────────────── -->
+<footer>
+    <div class="footer-inner">
+        <div class="footer-brand">HuntLedger</div>
+        <div class="footer-links">
+            <a href="mailto:info@huntledger.se">Kontakt</a>
+            <a href="/privacy">Integritetspolicy</a>
+        </div>
+        <div class="footer-copy">© 2026 HuntLedger. Alla rättigheter förbehållna.</div>
+    </div>
+</footer>
+
+<!-- ── Dropdown ───────────────────────────────── -->
+<script>
+function toggleGuiderMenu(e) {
+    e.stopPropagation();
+    document.getElementById('guiderMenu').classList.toggle('open');
+}
+document.addEventListener('click', function() {
+    document.getElementById('guiderMenu').classList.remove('open');
+});
+</script>
+
+
+<!-- Polsia Analytics -->
+<script>
+(function() {
+    var slug = '__POLSIA_SLUG__';
+    if (!slug || slug === '__POLSIA_SLUG__') slug = 'huntlog';
+    var vid = localStorage.getItem('polsia_vid');
+    if (!vid) {
+        vid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = Math.random() * 16 | 0;
+            return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        });
+        localStorage.setItem('polsia_vid', vid);
+    }
+    new Image().src = 'https://polsia.com/api/beacon/pixel?s=' + encodeURIComponent(slug) + '&v=' + encodeURIComponent(vid) + '&p=' + encodeURIComponent(location.pathname);
+})();
+</script>
+
+</body>
+</html>

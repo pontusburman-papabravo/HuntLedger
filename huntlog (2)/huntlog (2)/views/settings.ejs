@@ -1,0 +1,39 @@
+<%- include('layout-top') %>
+
+    <header class="page-header">
+        <h1><%= title %></h1>
+        <p><%= lang === 'en' ? 'Manage your preferences' : 'Hantera dina inställningar' %></p>
+    </header>
+
+    <section class="card">
+        <div class="settings-section">
+            <h2 class="settings-section-title"><%= lang === 'en' ? 'Language' : 'Språk' %></h2>
+            <p class="settings-lang-description">
+                <%= lang === 'en' ? 'Choose your preferred language for the interface.' : 'Välj ditt föredragna språk för gränssnittet.' %>
+            </p>
+            <div class="settings-lang-toggle">
+                <a href="/settings?lang=sv" class="settings-lang-btn <%= lang === 'sv' ? 'active' : '' %>">
+                    🇸🇪 Svenska
+                </a>
+                <a href="/settings?lang=en" class="settings-lang-btn <%= lang === 'en' ? 'active' : '' %>">
+                    🇬🇧 English
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="settings-section">
+            <h2 class="settings-section-title"><%= lang === 'en' ? 'About' : 'Om' %></h2>
+            <p class="settings-about-description">
+                <strong>HuntLedger</strong><br>
+                <% if (lang === 'en') { %>
+                    Your digital hunting journal. Track sessions, manage locations, maintain your weapons, and build a comprehensive record of your hunting experiences.
+                <% } else { %>
+                    Din digitala jaktdagbok. Logga sessioner, hantera platser, underhåll dina vapen och samla ett livs jakterfarenheter på ett ställe.
+                <% } %>
+            </p>
+        </div>
+    </section>
+
+<%- include('layout-bottom') %>

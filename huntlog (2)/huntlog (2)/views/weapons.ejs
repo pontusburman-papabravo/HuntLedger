@@ -1,0 +1,243 @@
+<%- include('layout-top') %>
+
+<%# All detail-card, detail-grid, back-nav, btn-sm, conv-hint rules now live in main.css %>
+
+<% if (action === 'list') { %>
+    <header class="page-header">
+        <h1><%= title %></h1>
+        <p><%= lang === 'en' ? 'Manage your weapon collection' : 'Hantera din vapensamling' %></p>
+        <div class="button-group">
+            <a href="/weapons/new?lang=<%= lang %>" class="btn btn-primary">
+                <%= lang === 'en' ? '+ New Weapon' : '+ Nytt vapen' %>
+            </a>
+        </div>
+    </header>
+
+    <% if (weapons.length === 0) { %>
+        <div class="empty-state">
+            <div class="empty-state-icon">🔫</div>
+            <div class="empty-state-title"><%= lang === 'en' ? 'No weapons registered' : 'Inga vapen registrerade' %></div>
+            <div class="empty-state-text">
+                <%= lang === 'en' ? 'Add your firearms to track maintenance and usage.' : 'Lägg till dina vapen för att spåra underhåll och användning.' %>
+            </div>
+            <a href="/weapons/new?lang=<%= lang %>" class="btn btn-primary">
+                <%= lang === 'en' ? '+ Add Weapon' : '+ Lägg till vapen' %>
+            </a>
+        </div>
+    <% } else { %>
+        <!-- Desktop table -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th><%= lang === 'en' ? 'Name' : 'Namn' %></th>
+                        <th><%= lang === 'en' ? 'Type' : 'Typ' %></th>
+                        <th><%= lang === 'en' ? 'Caliber' : 'Kaliber' %></th>
+                        <th><%= lang === 'en' ? 'Barrel length' : 'Piplängd' %></th>
+                        <th><%= lang === 'en' ? 'Actions' : 'Åtgärder' %></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% weapons.forEach(weapon => { %>
+                        <tr>
+                            <td>
+                                <a href="/weapons/<%= weapon.id %>?lang=<%= lang %>" style="font-weight:600;color:var(--forest);text-decoration:none;">
+                                    <%= weapon.name %>
+                                </a>
+                            </td>
+                            <td><%= weapon.type || '–' %></td>
+                            <td><%= weapon.caliber || '–' %></td>
+                            <td>
+                                <% if (weapon.barrel_length != null) { %>
+                                    <%= parseFloat(weapon.barrel_length) %> mm
+                                    <span style="font-size:0.8rem;color:var(--moss);">
+                                        (<%= (parseFloat(weapon.barrel_length) / 25.4).toFixed(2) %>&Prime;)
+                                    </span>
+                                <% } else { %>–<% } %>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="/weapons/<%= weapon.id %>?lang=<%= lang %>" class="action-btn">
+                                        <%= lang === 'en' ? 'View' : 'Visa' %>
+                                    </a>
+                                    <a href="/weapons/<%= weapon.id %>/edit?lang=<%= lang %>" class="action-btn">
+                                        <%= lang === 'en' ? 'Edit' : 'Redigera' %>
+                                    </a>
+                                    <form method="POST" action="/weapons/<%= weapon.id %>/delete" class="form-inline">
+                                        <button type="submit" class="action-btn"
+                                            onclick="return confirm('<%= lang === 'en' ? 'Delete this weapon?' : 'Ta bort detta vapen?' %>')">
+                                            <%= lang === 'en' ? 'Delete' : 'Ta bort' %>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile card list -->
+        <div class="mobile-card-list">
+            <% weapons.forEach(weapon => { %>
+                <div class="mobile-card-item">
+                    <a href="/weapons/<%= weapon.id %>?lang=<%= lang %>" style="text-decoration:none;color:inherit;">
+                        <div class="mobile-card-title"><%= weapon.name %></div>
+                    </a>
+                    <div class="mobile-card-meta">
+                        <% if (weapon.type) { %><span><%= weapon.type %></span><% } %>
+                        <% if (weapon.caliber) { %><span><%= weapon.caliber %></span><% } %>
+                        <% if (weapon.barrel_length != null) { %>
+                            <span><%= parseFloat(weapon.barrel_length) %> mm (<%= (parseFloat(weapon.barrel_length)/25.4).toFixed(2) %>&Prime;)</span>
+                        <% } %>
+                    </div>
+                    <div class="mobile-card-actions">
+                        <a href="/weapons/<%= weapon.id %>?lang=<%= lang %>" class="action-btn">
+                            <%= lang === 'en' ? 'View' : 'Visa' %>
+                        </a>
+                        <a href="/weapons/<%= weapon.id %>/edit?lang=<%= lang %>" class="action-btn">
+                            <%= lang === 'en' ? 'Edit' : 'Redigera' %>
+                        </a>
+                        <form method="POST" action="/weapons/<%= weapon.id %>/delete" class="form-inline-flex">
+                            <button type="submit" class="action-btn action-btn-full"
+                                onclick="return confirm('<%= lang === 'en' ? 'Delete this weapon?' : 'Ta bort detta vapen?' %>')">
+                                <%= lang === 'en' ? 'Delete' : 'Ta bort' %>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+    <% } %>
+
+<% } else if (action === 'detail') { %>
+    <div class="back-nav">
+        <a href="/weapons?lang=<%= lang %>" class="btn btn-secondary btn-sm">
+            ← <%= lang === 'en' ? 'Weapons' : 'Vapen' %>
+        </a>
+    </div>
+    <header class="page-header">
+        <h1><%= title %></h1>
+    </header>
+    <div class="detail-card">
+        <div class="detail-grid">
+            <% if (weapon.type) { %>
+            <div class="detail-field">
+                <div class="detail-label"><%= lang === 'en' ? 'Type' : 'Typ' %></div>
+                <div class="detail-value"><%= weapon.type %></div>
+            </div>
+            <% } %>
+            <% if (weapon.caliber) { %>
+            <div class="detail-field">
+                <div class="detail-label"><%= lang === 'en' ? 'Caliber' : 'Kaliber' %></div>
+                <div class="detail-value"><%= weapon.caliber %></div>
+            </div>
+            <% } %>
+            <% if (weapon.barrel_length != null) { %>
+            <div class="detail-field">
+                <div class="detail-label"><%= lang === 'en' ? 'Barrel length' : 'Piplängd' %></div>
+                <div class="detail-value">
+                    <%= parseFloat(weapon.barrel_length) %> mm
+                    <span style="color:var(--moss);font-size:0.85rem;">
+                        = <%= (parseFloat(weapon.barrel_length)/25.4).toFixed(2) %>&Prime;
+                    </span>
+                </div>
+            </div>
+            <% } %>
+        </div>
+        <% if (weapon.notes) { %>
+        <div class="detail-field" style="margin-top:0.5rem;">
+            <div class="detail-label"><%= lang === 'en' ? 'Notes' : 'Anteckningar' %></div>
+            <div class="detail-value" style="white-space:pre-wrap;"><%= weapon.notes %></div>
+        </div>
+        <% } %>
+    </div>
+    <div class="button-group" style="margin-top:1.5rem;">
+        <a href="/weapons/<%= weapon.id %>/edit?lang=<%= lang %>" class="btn btn-primary">
+            <%= lang === 'en' ? 'Edit' : 'Redigera' %>
+        </a>
+        <form method="POST" action="/weapons/<%= weapon.id %>/delete" class="form-inline">
+            <button type="submit" class="btn btn-secondary"
+                onclick="return confirm('<%= lang === 'en' ? 'Delete this weapon?' : 'Ta bort detta vapen?' %>')">
+                <%= lang === 'en' ? 'Delete' : 'Ta bort' %>
+            </button>
+        </form>
+    </div>
+
+<% } else if (action === 'new' || action === 'edit') { %>
+    <div class="back-nav">
+        <a href="/weapons?lang=<%= lang %>" class="btn btn-secondary btn-sm">
+            ← <%= lang === 'en' ? 'Weapons' : 'Vapen' %>
+        </a>
+    </div>
+    <header class="page-header">
+        <h1><%= title %></h1>
+    </header>
+    <div class="card">
+        <form method="POST" action="<%= action === 'new' ? '/weapons' : `/weapons/${weapon.id}/update` %>?lang=<%= lang %>">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label"><%= lang === 'en' ? 'Name' : 'Namn' %> *</label>
+                    <input type="text" name="name" class="form-control" value="<%= weapon.name || '' %>" required
+                        placeholder="<%= lang === 'en' ? 'e.g. Tikka T3x' : 't.ex. Tikka T3x' %>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><%= lang === 'en' ? 'Type' : 'Typ' %></label>
+                    <input type="text" name="type" class="form-control" value="<%= weapon.type || '' %>"
+                        placeholder="<%= lang === 'en' ? 'e.g. Rifle, Shotgun, Pistol' : 't.ex. Gevär, Hagelvapen, Pistol' %>">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label"><%= lang === 'en' ? 'Caliber' : 'Kaliber' %></label>
+                    <input type="text" name="caliber" class="form-control" value="<%= weapon.caliber || '' %>"
+                        placeholder="<%= lang === 'en' ? 'e.g. 6.5×55, .308' : 't.ex. 6.5×55, .308' %>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><%= lang === 'en' ? 'Barrel length (mm)' : 'Piplängd (mm)' %></label>
+                    <input type="number" name="barrel_length" id="barrelLengthInput" class="form-control" step="0.1" min="0"
+                        value="<%= weapon.barrel_length != null ? weapon.barrel_length : '' %>"
+                        placeholder="<%= lang === 'en' ? 'e.g. 600' : 't.ex. 600' %>">
+                    <div class="conv-hint" id="barrelConvHint">
+                        <% if (weapon.barrel_length != null && weapon.barrel_length !== '') { %>
+                            = <%= (parseFloat(weapon.barrel_length)/25.4).toFixed(2) %>&Prime; (<%= lang === 'en' ? 'inches' : 'tum' %>)
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label"><%= lang === 'en' ? 'Notes' : 'Anteckningar' %></label>
+                <textarea name="notes" class="form-control" rows="4"
+                    placeholder="<%= lang === 'en' ? 'Add any notes about this weapon...' : 'Lägg till anteckningar om vapnet...' %>"><%= weapon.notes || '' %></textarea>
+            </div>
+            <div class="button-group" style="margin-top:1.5rem;">
+                <button type="submit" class="btn btn-primary">
+                    <%= action === 'new' ? (lang === 'en' ? 'Create Weapon' : 'Skapa vapen') : (lang === 'en' ? 'Update Weapon' : 'Uppdatera vapen') %>
+                </button>
+                <a href="/weapons?lang=<%= lang %>" class="btn btn-secondary">
+                    <%= lang === 'en' ? 'Cancel' : 'Avbryt' %>
+                </a>
+            </div>
+        </form>
+    </div>
+    <script>
+    (function() {
+        var lang = '<%= lang %>';
+        var input = document.getElementById('barrelLengthInput');
+        var hint = document.getElementById('barrelConvHint');
+        if (!input || !hint) return;
+        function update() {
+            var val = parseFloat(input.value);
+            if (!isNaN(val) && val > 0) {
+                var inches = (val / 25.4).toFixed(2);
+                hint.textContent = '= ' + inches + '\u2033 (' + (lang === 'en' ? 'inches' : 'tum') + ')';
+            } else {
+                hint.textContent = '';
+            }
+        }
+        input.addEventListener('input', update);
+    })();
+    </script>
+<% } %>
+
+<%- include('layout-bottom') %>

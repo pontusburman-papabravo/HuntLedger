@@ -1,0 +1,476 @@
+<%- include('layout-top') %>
+
+<% if (action === 'new' || action === 'edit' || action === 'detail') { %>
+<style>
+/* Ballistic coefficient row — unique to ammunition */
+.bc-row { display: flex; gap: 0.5rem; align-items: flex-start; }
+.bc-row .form-control { flex: 1; min-width: 0; }
+.bc-row select.form-control { flex: 0 0 90px; width: 90px; }
+/* Ammo type toggle */
+.ammo-toggle { display: flex; gap: 0; margin-bottom: 1.5rem; border-radius: 8px; overflow: hidden; border: 2px solid var(--forest); background: var(--cream); }
+.ammo-toggle input[type=radio] { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
+.ammo-toggle label {
+    flex: 1; padding: 0.7rem 1rem; text-align: center; cursor: pointer; font-size: 0.9rem; font-weight: 500;
+    color: var(--forest); background: var(--cream); transition: background 0.15s, color 0.15s;
+    user-select: none; border: none; min-height: 44px; display: flex; align-items: center; justify-content: center;
+}
+.ammo-toggle input[type=radio]:checked + label { background: var(--forest); color: var(--cream); }
+.ammo-toggle label:first-of-type { border-right: 1px solid var(--moss); }
+.toggle-hint { font-size: 0.82rem; color: var(--moss); margin-bottom: 1rem; }
+.field-section { display: none; }
+.field-section.visible { display: block; }
+@media (max-width: 480px) { .bc-row { flex-wrap: wrap; } .bc-row select.form-control { flex: 0 0 100%; } }
+</style>
+<% } %>
+
+<% if (action === 'list') { %>
+    <%
+    function ammoTypeLabel(ammo_type, lang) {
+        if (ammo_type === 'rifle') return lang === 'en' ? 'Rifle' : 'Kulammunition';
+        if (ammo_type === 'shotgun') return lang === 'en' ? 'Shotgun' : 'Hagelammunition';
+        return '–';
+    }
+    function ammoDisplayName(a, lang) {
+        if (a.bullet_name) return a.bullet_name;
+        if (a.shot_size) return (lang === 'en' ? 'Shot ' : 'Hagel ') + a.shot_size;
+        if (a.type) return a.type;
+        return '–';
+    }
+    %>
+    <header class="page-header">
+        <h1><%= title %></h1>
+        <p><%= lang === 'en' ? 'Manage your ammunition inventory' : 'Hantera ditt ammunitionsförråd' %></p>
+        <div class="button-group">
+            <a href="/ammunition/new?lang=<%= lang %>" class="btn btn-primary">
+                <%= lang === 'en' ? '+ New Ammunition' : '+ Ny ammunition' %>
+            </a>
+        </div>
+    </header>
+
+    <% if (ammunition.length === 0) { %>
+        <div class="empty-state">
+            <div class="empty-state-icon">💣</div>
+            <div class="empty-state-title"><%= lang === 'en' ? 'No ammunition listed' : 'Ingen ammunition listad' %></div>
+            <div class="empty-state-text">
+                <%= lang === 'en' ? 'Track your ammunition types and quantities.' : 'Spåra dina ammunitionstyper och mängder.' %>
+            </div>
+            <a href="/ammunition/new?lang=<%= lang %>" class="btn btn-primary">
+                <%= lang === 'en' ? '+ Add Ammunition' : '+ Lägg till ammunition' %>
+            </a>
+        </div>
+    <% } else { %>
+        <!-- Desktop table -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th><%= lang === 'en' ? 'Name / Type' : 'Namn / Typ' %></th>
+                        <th><%= lang === 'en' ? 'Caliber' : 'Kaliber' %></th>
+                        <th><%= lang === 'en' ? 'Ammo type' : 'Typ' %></th>
+                        <th><%= lang === 'en' ? 'Quantity' : 'Mängd' %></th>
+                        <th><%= lang === 'en' ? 'Lead-free' : 'Blyfri' %></th>
+                        <th><%= lang === 'en' ? 'Actions' : 'Åtgärder' %></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% ammunition.forEach(a => { %>
+                        <tr>
+                            <td>
+                                <a href="/ammunition/<%= a.id %>?lang=<%= lang %>" style="font-weight:600;color:var(--forest);text-decoration:none;">
+                                    <%= ammoDisplayName(a, lang) %>
+                                </a>
+                            </td>
+                            <td><%= a.caliber || '–' %></td>
+                            <td><%= ammoTypeLabel(a.ammo_type, lang) %></td>
+                            <td><%= a.quantity != null ? a.quantity : '–' %></td>
+                            <td><%= a.lead_free ? '✓' : '–' %></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="/ammunition/<%= a.id %>?lang=<%= lang %>" class="action-btn">
+                                        <%= lang === 'en' ? 'View' : 'Visa' %>
+                                    </a>
+                                    <a href="/ammunition/<%= a.id %>/edit?lang=<%= lang %>" class="action-btn">
+                                        <%= lang === 'en' ? 'Edit' : 'Redigera' %>
+                                    </a>
+                                    <form method="POST" action="/ammunition/<%= a.id %>/delete" class="form-inline">
+                                        <button type="submit" class="action-btn"
+                                            onclick="return confirm('<%= lang === 'en' ? 'Delete this ammunition?' : 'Ta bort denna ammunition?' %>')">
+                                            <%= lang === 'en' ? 'Delete' : 'Ta bort' %>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile card list -->
+        <div class="mobile-card-list">
+            <% ammunition.forEach(a => { %>
+                <div class="mobile-card-item">
+                    <a href="/ammunition/<%= a.id %>?lang=<%= lang %>" style="text-decoration:none;color:inherit;">
+                        <div class="mobile-card-title"><%= ammoDisplayName(a, lang) %></div>
+                    </a>
+                    <div class="mobile-card-meta">
+                        <% if (a.caliber) { %><span><%= a.caliber %></span><% } %>
+                        <% if (a.ammo_type) { %><span><%= ammoTypeLabel(a.ammo_type, lang) %></span><% } %>
+                        <% if (a.quantity != null) { %><span><%= a.quantity %> <%= lang === 'en' ? 'pcs' : 'st' %></span><% } %>
+                        <% if (a.lead_free) { %><span><%= lang === 'en' ? 'Lead-free' : 'Blyfri' %></span><% } %>
+                    </div>
+                    <div class="mobile-card-actions">
+                        <a href="/ammunition/<%= a.id %>?lang=<%= lang %>" class="action-btn">
+                            <%= lang === 'en' ? 'View' : 'Visa' %>
+                        </a>
+                        <a href="/ammunition/<%= a.id %>/edit?lang=<%= lang %>" class="action-btn">
+                            <%= lang === 'en' ? 'Edit' : 'Redigera' %>
+                        </a>
+                        <form method="POST" action="/ammunition/<%= a.id %>/delete" class="form-inline-flex">
+                            <button type="submit" class="action-btn action-btn-full"
+                                onclick="return confirm('<%= lang === 'en' ? 'Delete this ammunition?' : 'Ta bort denna ammunition?' %>')">
+                                <%= lang === 'en' ? 'Delete' : 'Ta bort' %>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+    <% } %>
+
+<% } else if (action === 'detail') { %>
+    <%
+    const isRifle = ammo.ammo_type === 'rifle';
+    const isShotgun = ammo.ammo_type === 'shotgun';
+    %>
+    <div class="back-nav">
+        <a href="/ammunition?lang=<%= lang %>" class="btn btn-secondary btn-sm">
+            ← <%= lang === 'en' ? 'Ammunition' : 'Ammunition' %>
+        </a>
+    </div>
+    <header class="page-header">
+        <h1><%= title %></h1>
+        <% if (ammo.ammo_type) { %>
+        <p style="color:var(--moss);">
+            <%= ammo.ammo_type === 'rifle' ? (lang === 'en' ? 'Rifle ammunition' : 'Kulammunition') : (lang === 'en' ? 'Shotgun ammunition' : 'Hagelammunition') %>
+        </p>
+        <% } %>
+    </header>
+
+    <div class="detail-card">
+        <!-- Common fields -->
+        <div class="detail-grid">
+            <% if (ammo.caliber) { %>
+            <div class="detail-field">
+                <div class="detail-label"><%= lang === 'en' ? 'Caliber' : 'Kaliber' %></div>
+                <div class="detail-value"><%= ammo.caliber %></div>
+            </div>
+            <% } %>
+            <% if (ammo.quantity != null) { %>
+            <div class="detail-field">
+                <div class="detail-label"><%= lang === 'en' ? 'Quantity' : 'Mängd' %></div>
+                <div class="detail-value"><%= ammo.quantity %> <%= lang === 'en' ? 'pcs' : 'st' %></div>
+            </div>
+            <% } %>
+            <div class="detail-field">
+                <div class="detail-label"><%= lang === 'en' ? 'Lead-free' : 'Blyfri' %></div>
+                <div class="detail-value"><%= ammo.lead_free ? (lang === 'en' ? 'Yes' : 'Ja') : (lang === 'en' ? 'No' : 'Nej') %></div>
+            </div>
+            <% if (ammo.cartridge_length != null) { %>
+            <div class="detail-field">
+                <div class="detail-label"><%= lang === 'en' ? 'Cartridge length' : 'Patronlängd' %></div>
+                <div class="detail-value"><%= ammo.cartridge_length %> mm</div>
+            </div>
+            <% } %>
+        </div>
+
+        <% if (isRifle) { %>
+        <div class="detail-section-title"><%= lang === 'en' ? 'Bullet details' : 'Kuldetaljer' %></div>
+        <div class="detail-grid">
+            <% if (ammo.bullet_name) { %>
+            <div class="detail-field">
+                <div class="detail-label"><%= lang === 'en' ? 'Bullet name' : 'Kulnamn' %></div>
+                <div class="detail-value"><%= ammo.bullet_name %></div>
+            </div>
+            <% } %>
+            <% if (ammo.bullet_construction) { %>
+            <div class="detail-field">
+                <div class="detail-label"><%= lang === 'en' ? 'Bullet construction' : 'Kulkonstruktion' %></div>
+                <div class="detail-value"><%= ammo.bullet_construction %></div>
+            </div>
+            <% } %>
+            <% if (ammo.bullet_weight != null) { %>
+            <div class="detail-field">
+                <div class="detail-label"><%= lang === 'en' ? 'Bullet weight' : 'Kulvikt' %></div>
+                <div class="detail-value">
+                    <%= ammo.bullet_weight %> gr
+                    <span style="color:var(--moss);font-size:0.85rem;">= <%= (parseFloat(ammo.bullet_weight)*0.0648).toFixed(2) %> g</span>
+                </div>
+            </div>
+            <% } %>
+            <% if (ammo.bc_value != null) { %>
+            <div class="detail-field">
+                <div class="detail-label"><%= lang === 'en' ? 'Ballistic coefficient' : 'Ballistisk koefficient' %></div>
+                <div class="detail-value"><%= ammo.bc_value %> <% if (ammo.bc_type) { %>(<%= ammo.bc_type %>)<% } %></div>
+            </div>
+            <% } %>
+            <% if (ammo.muzzle_velocity != null) { %>
+            <div class="detail-field">
+                <div class="detail-label"><%= lang === 'en' ? 'Muzzle velocity' : 'Mynningshastighet' %></div>
+                <div class="detail-value"><%= ammo.muzzle_velocity %> m/s</div>
+            </div>
+            <% } %>
+        </div>
+        <% } %>
+
+        <% if (isShotgun) { %>
+        <div class="detail-section-title"><%= lang === 'en' ? 'Shot details' : 'Hageldetaljer' %></div>
+        <div class="detail-grid">
+            <% if (ammo.shot_size) { %>
+            <div class="detail-field">
+                <div class="detail-label"><%= lang === 'en' ? 'Shot size' : 'Hagelstorlek' %></div>
+                <div class="detail-value"><%= ammo.shot_size %></div>
+            </div>
+            <% } %>
+            <% if (ammo.charge_weight != null) { %>
+            <div class="detail-field">
+                <div class="detail-label"><%= lang === 'en' ? 'Charge weight' : 'Laddvikt' %></div>
+                <div class="detail-value"><%= ammo.charge_weight %> g</div>
+            </div>
+            <% } %>
+            <% if (ammo.shot_material) { %>
+            <div class="detail-field">
+                <div class="detail-label"><%= lang === 'en' ? 'Shot material' : 'Hagelmaterial' %></div>
+                <div class="detail-value"><%= ammo.shot_material %></div>
+            </div>
+            <% } %>
+        </div>
+        <% } %>
+
+        <% if (ammo.notes) { %>
+        <div class="detail-field" style="margin-top:0.5rem;">
+            <div class="detail-label"><%= lang === 'en' ? 'Notes' : 'Anteckningar' %></div>
+            <div class="detail-value" style="white-space:pre-wrap;"><%= ammo.notes %></div>
+        </div>
+        <% } %>
+    </div>
+
+    <div class="button-group" style="margin-top:1.5rem;">
+        <a href="/ammunition/<%= ammo.id %>/edit?lang=<%= lang %>" class="btn btn-primary">
+            <%= lang === 'en' ? 'Edit' : 'Redigera' %>
+        </a>
+        <form method="POST" action="/ammunition/<%= ammo.id %>/delete" class="form-inline">
+            <button type="submit" class="btn btn-secondary"
+                onclick="return confirm('<%= lang === 'en' ? 'Delete this ammunition?' : 'Ta bort denna ammunition?' %>')">
+                <%= lang === 'en' ? 'Delete' : 'Ta bort' %>
+            </button>
+        </form>
+    </div>
+
+<% } else if (action === 'new' || action === 'edit') { %>
+    <%
+    const currentAmmoType = (typeof ammo !== 'undefined') ? (ammo.ammo_type || '') : '';
+    %>
+    <div class="back-nav">
+        <a href="/ammunition?lang=<%= lang %>" class="btn btn-secondary btn-sm">
+            ← <%= lang === 'en' ? 'Ammunition' : 'Ammunition' %>
+        </a>
+    </div>
+    <header class="page-header">
+        <h1><%= title %></h1>
+    </header>
+    <div class="card">
+        <form method="POST" action="<%= action === 'new' ? '/ammunition' : `/ammunition/${ammo.id}/update` %>?lang=<%= lang %>">
+
+            <!-- Ammo type toggle -->
+            <div class="form-group">
+                <label class="form-label">
+                    <%= lang === 'en' ? 'Rifle or shotgun ammunition?' : 'Kul- eller hagelammunition?' %>
+                </label>
+                <div class="ammo-toggle" role="group">
+                    <input type="radio" name="ammo_type" id="toggle_rifle" value="rifle"
+                        <%= currentAmmoType === 'rifle' ? 'checked' : '' %>>
+                    <label for="toggle_rifle">
+                        🎯 <%= lang === 'en' ? 'Rifle ammunition' : 'Kulammunition' %>
+                    </label>
+                    <input type="radio" name="ammo_type" id="toggle_shotgun" value="shotgun"
+                        <%= currentAmmoType === 'shotgun' ? 'checked' : '' %>>
+                    <label for="toggle_shotgun">
+                        💥 <%= lang === 'en' ? 'Shotgun ammunition' : 'Hagelammunition' %>
+                    </label>
+                </div>
+                <% if (!currentAmmoType) { %>
+                <div class="toggle-hint">
+                    <%= lang === 'en' ? 'Select ammunition type to see relevant fields.' : 'Välj ammunitionstyp för att se relevanta fält.' %>
+                </div>
+                <% } %>
+            </div>
+
+            <!-- Common base fields -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label"><%= lang === 'en' ? 'Caliber' : 'Kaliber' %> *</label>
+                    <input type="text" name="caliber" class="form-control" required
+                        value="<%= (typeof ammo !== 'undefined' && ammo.caliber) ? ammo.caliber : '' %>"
+                        placeholder="<%= lang === 'en' ? 'e.g. 6.5×55, 12/70' : 't.ex. 6.5×55, 12/70' %>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><%= lang === 'en' ? 'Quantity' : 'Mängd' %></label>
+                    <input type="number" name="quantity" class="form-control" min="0"
+                        value="<%= (typeof ammo !== 'undefined' && ammo.quantity != null) ? ammo.quantity : '' %>"
+                        placeholder="<%= lang === 'en' ? 'e.g. 50' : 't.ex. 50' %>">
+                </div>
+            </div>
+
+            <!-- ── Rifle-only fields ─────────────────────────────────────────── -->
+            <div class="field-section <%= currentAmmoType === 'rifle' ? 'visible' : '' %>" id="rifleFields">
+                <div class="detail-section-title" style="margin-top:0.5rem;">
+                    <%= lang === 'en' ? 'Bullet details' : 'Kuldetaljer' %>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label"><%= lang === 'en' ? 'Bullet name' : 'Kulnamn' %></label>
+                        <input type="text" name="bullet_name" class="form-control"
+                            value="<%= (typeof ammo !== 'undefined' && ammo.bullet_name) ? ammo.bullet_name : '' %>"
+                            placeholder="<%= lang === 'en' ? 'e.g. Oryx, Partition, EcoStrike' : 't.ex. Oryx, Partition, EcoStrike' %>">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><%= lang === 'en' ? 'Bullet construction' : 'Kulkonstruktion' %></label>
+                        <input type="text" name="bullet_construction" class="form-control"
+                            value="<%= (typeof ammo !== 'undefined' && ammo.bullet_construction) ? ammo.bullet_construction : '' %>"
+                            placeholder="<%= lang === 'en' ? 'e.g. Full metal jacket, bonded, copper' : 't.ex. Helmantlad, bondad, koppar' %>">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label"><%= lang === 'en' ? 'Bullet weight (grains)' : 'Kulvikt (grains)' %></label>
+                        <input type="number" name="bullet_weight" id="bulletWeightInput" class="form-control" step="0.01" min="0"
+                            value="<%= (typeof ammo !== 'undefined' && ammo.bullet_weight != null) ? ammo.bullet_weight : '' %>">
+                        <div class="conv-hint" id="bulletWeightHint">
+                            <% if (typeof ammo !== 'undefined' && ammo.bullet_weight != null && ammo.bullet_weight !== '') { %>
+                                = <%= (parseFloat(ammo.bullet_weight)*0.0648).toFixed(2) %> g
+                            <% } %>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><%= lang === 'en' ? 'Muzzle velocity (m/s)' : 'Mynningshastighet (m/s)' %></label>
+                        <input type="number" name="muzzle_velocity" class="form-control" step="1" min="0"
+                            value="<%= (typeof ammo !== 'undefined' && ammo.muzzle_velocity != null) ? ammo.muzzle_velocity : '' %>"
+                            placeholder="<%= lang === 'en' ? 'e.g. 870' : 't.ex. 870' %>">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><%= lang === 'en' ? 'Ballistic coefficient' : 'Ballistisk koefficient' %></label>
+                    <div class="bc-row">
+                        <input type="number" name="bc_value" class="form-control" step="0.001" min="0" max="2"
+                            value="<%= (typeof ammo !== 'undefined' && ammo.bc_value != null) ? ammo.bc_value : '' %>"
+                            placeholder="<%= lang === 'en' ? 'e.g. 0.485' : 't.ex. 0.485' %>">
+                        <select name="bc_type" class="form-control">
+                            <option value="">–</option>
+                            <option value="G1" <%= (typeof ammo !== 'undefined' && ammo.bc_type === 'G1') ? 'selected' : '' %>>G1</option>
+                            <option value="G7" <%= (typeof ammo !== 'undefined' && ammo.bc_type === 'G7') ? 'selected' : '' %>>G7</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Shotgun-only fields ──────────────────────────────────────── -->
+            <div class="field-section <%= currentAmmoType === 'shotgun' ? 'visible' : '' %>" id="shotgunFields">
+                <div class="detail-section-title" style="margin-top:0.5rem;">
+                    <%= lang === 'en' ? 'Shot details' : 'Hageldetaljer' %>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label"><%= lang === 'en' ? 'Shot size' : 'Hagelstorlek' %></label>
+                        <input type="text" name="shot_size" class="form-control"
+                            value="<%= (typeof ammo !== 'undefined' && ammo.shot_size) ? ammo.shot_size : '' %>"
+                            placeholder="<%= lang === 'en' ? 'e.g. No. 1, No. 5, BB' : 't.ex. Nr 1, Nr 5, BB' %>">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><%= lang === 'en' ? 'Charge weight (g)' : 'Laddvikt (g)' %></label>
+                        <input type="number" name="charge_weight" class="form-control" step="0.1" min="0"
+                            value="<%= (typeof ammo !== 'undefined' && ammo.charge_weight != null) ? ammo.charge_weight : '' %>"
+                            placeholder="<%= lang === 'en' ? 'e.g. 32' : 't.ex. 32' %>">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><%= lang === 'en' ? 'Shot material' : 'Hagelmaterial' %></label>
+                    <input type="text" name="shot_material" class="form-control"
+                        value="<%= (typeof ammo !== 'undefined' && ammo.shot_material) ? ammo.shot_material : '' %>"
+                        placeholder="<%= lang === 'en' ? 'e.g. Steel, bismuth, tungsten' : 't.ex. Stål, bismut, volfram' %>">
+                </div>
+            </div>
+
+            <!-- ── Common fields (always shown) ────────────────────────────── -->
+            <div class="detail-section-title" style="margin-top:1rem;">
+                <%= lang === 'en' ? 'Common' : 'Gemensamma fält' %>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label"><%= lang === 'en' ? 'Cartridge length (mm)' : 'Patronlängd (mm)' %></label>
+                    <input type="number" name="cartridge_length" class="form-control" step="0.1" min="0"
+                        value="<%= (typeof ammo !== 'undefined' && ammo.cartridge_length != null) ? ammo.cartridge_length : '' %>"
+                        placeholder="<%= lang === 'en' ? 'e.g. 51' : 't.ex. 51' %>">
+                </div>
+                <div class="form-group" style="display:flex;align-items:center;gap:0.6rem;padding-top:1.8rem;">
+                    <input type="checkbox" name="lead_free" id="leadFreeCheck"
+                        value="on" style="width:18px;height:18px;cursor:pointer;accent-color:var(--forest);"
+                        <%= (typeof ammo !== 'undefined' && ammo.lead_free) ? 'checked' : '' %>>
+                    <label for="leadFreeCheck" class="form-label" style="margin:0;cursor:pointer;font-size:0.9rem;">
+                        <%= lang === 'en' ? 'Lead-free' : 'Blyfri' %>
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label"><%= lang === 'en' ? 'Notes' : 'Anteckningar' %></label>
+                <textarea name="notes" class="form-control" rows="3"
+                    placeholder="<%= lang === 'en' ? 'Add any notes...' : 'Lägg till anteckningar...' %>"><%= (typeof ammo !== 'undefined' && ammo.notes) ? ammo.notes : '' %></textarea>
+            </div>
+
+            <div class="button-group" style="margin-top:1.5rem;">
+                <button type="submit" class="btn btn-primary">
+                    <%= action === 'new' ? (lang === 'en' ? 'Create Ammunition' : 'Skapa ammunition') : (lang === 'en' ? 'Update Ammunition' : 'Uppdatera ammunition') %>
+                </button>
+                <a href="/ammunition?lang=<%= lang %>" class="btn btn-secondary">
+                    <%= lang === 'en' ? 'Cancel' : 'Avbryt' %>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+    (function() {
+        // Toggle rifle/shotgun fields
+        var rifleFields = document.getElementById('rifleFields');
+        var shotgunFields = document.getElementById('shotgunFields');
+        var toggleRifle = document.getElementById('toggle_rifle');
+        var toggleShotgun = document.getElementById('toggle_shotgun');
+
+        function updateFieldVisibility() {
+            var val = toggleRifle && toggleRifle.checked ? 'rifle' : (toggleShotgun && toggleShotgun.checked ? 'shotgun' : '');
+            if (rifleFields) rifleFields.classList.toggle('visible', val === 'rifle');
+            if (shotgunFields) shotgunFields.classList.toggle('visible', val === 'shotgun');
+        }
+
+        if (toggleRifle) toggleRifle.addEventListener('change', updateFieldVisibility);
+        if (toggleShotgun) toggleShotgun.addEventListener('change', updateFieldVisibility);
+        updateFieldVisibility();
+
+        // Bullet weight → gram conversion
+        var bwInput = document.getElementById('bulletWeightInput');
+        var bwHint = document.getElementById('bulletWeightHint');
+        if (bwInput && bwHint) {
+            bwInput.addEventListener('input', function() {
+                var val = parseFloat(bwInput.value);
+                if (!isNaN(val) && val > 0) {
+                    bwHint.textContent = '= ' + (val * 0.0648).toFixed(2) + ' g';
+                } else {
+                    bwHint.textContent = '';
+                }
+            });
+        }
+    })();
+    </script>
+<% } %>
+
+<%- include('layout-bottom') %>

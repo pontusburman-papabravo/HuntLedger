@@ -1,0 +1,51 @@
+<%- include('layout-top') %>
+
+    <header class="page-header">
+        <h1><%= title %></h1>
+        <p><%= lang === 'en' ? 'Welcome to your hunting journal' : 'Välkommen till din jaktdagbok' %></p>
+    </header>
+
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="stat-value"><%= stats.locations %></div>
+            <div class="stat-label"><%= lang === 'en' ? 'Locations' : 'Platser' %></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value"><%= stats.sessions %></div>
+            <div class="stat-label"><%= lang === 'en' ? 'Sessions' : 'Aktiviteter' %></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value"><%= stats.weapons %></div>
+            <div class="stat-label"><%= lang === 'en' ? 'Weapons' : 'Vapen' %></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title"><%= lang === 'en' ? 'Quick Actions' : 'Snabblänkar' %></div>
+        <div class="button-group">
+            <a href="/locations/new" class="btn btn-primary">
+                <%= lang === 'en' ? '+ New Location' : '+ Ny plats' %>
+            </a>
+            <a href="/locations" class="btn btn-secondary">
+                <%= lang === 'en' ? 'View Locations' : 'Visa platser' %>
+            </a>
+            <a href="/sessions" class="btn btn-secondary">
+                <%= lang === 'en' ? 'View Sessions' : 'Visa aktiviteter' %>
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title"><%= lang === 'en' ? 'About HuntLedger' : 'Om HuntLedger' %></div>
+        <p>
+            <% if (lang === 'en') { %>
+                HuntLedger is your digital hunting journal. Track your hunting sessions, manage locations,
+                maintain your weapons, and build a comprehensive record of your hunting experiences.
+            <% } else { %>
+                HuntLedger är din digitala jaktdagbok. Logga dina jakter, hantera platser,
+                underhåll dina vapen och samla ett livs jakterfarenheter på ett ställe.
+            <% } %>
+        </p>
+    </div>
+
+<%- include('layout-bottom') %>

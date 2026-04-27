@@ -1,0 +1,54 @@
+        </main>
+        <footer class="app-footer" role="contentinfo"></footer>
+    </div>
+
+    <script>
+        (function() {
+            var btn = document.getElementById('hamburgerBtn');
+            var sidebar = document.getElementById('sidebar');
+            var overlay = document.getElementById('sidebarOverlay');
+
+            if (!btn || !sidebar || !overlay) return;
+
+            function openMenu() {
+                sidebar.classList.add('open');
+                overlay.classList.add('visible');
+                btn.classList.add('open');
+                btn.setAttribute('aria-expanded', 'true');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeMenu() {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('visible');
+                btn.classList.remove('open');
+                btn.setAttribute('aria-expanded', 'false');
+                document.body.style.overflow = '';
+            }
+
+            btn.addEventListener('click', function() {
+                if (sidebar.classList.contains('open')) {
+                    closeMenu();
+                } else {
+                    openMenu();
+                }
+            });
+
+            overlay.addEventListener('click', closeMenu);
+
+            // Close when a nav link is tapped (navigates away)
+            var navLinks = sidebar.querySelectorAll('.sidebar-nav-link');
+            navLinks.forEach(function(link) {
+                link.addEventListener('click', closeMenu);
+            });
+
+            // Close on Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+                    closeMenu();
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

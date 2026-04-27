@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 130" width="120" height="130">
+  <!-- Shield background -->
+  <path d="M60 6 L106 24 L106 70 Q106 108 60 124 Q14 108 14 70 L14 24 Z" fill="#1a2e1a"/>
+  <!-- Shield outer border -->
+  <path d="M60 6 L106 24 L106 70 Q106 108 60 124 Q14 108 14 70 L14 24 Z" fill="none" stroke="#c8a96e" stroke-width="2.5"/>
+  <!-- Shield inner border -->
+  <path d="M60 14 L99 30 L99 70 Q99 103 60 117 Q21 103 21 70 L21 30 Z" fill="none" stroke="#c8a96e" stroke-width="0.8" stroke-dasharray="3 2"/>
+
+  <!-- Title at top -->
+  <text x="60" y="31" text-anchor="middle" fill="#c8a96e" font-family="Georgia,Times New Roman,serif" font-size="9" font-weight="700" letter-spacing="1">BJ&#214;RNPASSET</text>
+
+  <!-- Bear head (front view, round) -->
+  <!-- Round ears (characteristic bear) -->
+  <circle cx="43" cy="50" r="8" stroke="#c8a96e" stroke-width="2" fill="none"/>
+  <circle cx="43" cy="50" r="4.5" stroke="#c8a96e" stroke-width="1.5" fill="none"/>
+  <circle cx="77" cy="50" r="8" stroke="#c8a96e" stroke-width="2" fill="none"/>
+  <circle cx="77" cy="50" r="4.5" stroke="#c8a96e" stroke-width="1.5" fill="none"/>
+  <!-- Main head (large round) -->
+  <circle cx="60" cy="72" r="20" stroke="#c8a96e" stroke-width="2" fill="none"/>
+  <!-- Muzzle (lighter protruding oval) -->
+  <ellipse cx="60" cy="80" rx="10" ry="7.5" stroke="#c8a96e" stroke-width="1.8" fill="none"/>
+  <!-- Nose -->
+  <path d="M56 77 Q60 82 64 77" stroke="#c8a96e" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <ellipse cx="60" cy="76" rx="3" ry="2" fill="#c8a96e"/>
+  <!-- Eyes -->
+  <circle cx="51" cy="65" r="2.2" fill="#c8a96e"/>
+  <circle cx="69" cy="65" r="2.2" fill="#c8a96e"/>
+  <!-- Eye highlights (small) -->
+  <circle cx="52.2" cy="64" r="0.7" fill="#1a2e1a"/>
+  <circle cx="70.2" cy="64" r="0.7" fill="#1a2e1a"/>
+  <!-- Brow -->
+  <path d="M47 60 Q51 57 55 60" stroke="#c8a96e" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <path d="M65 60 Q69 57 73 60" stroke="#c8a96e" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- Chin -->
+  <path d="M50 88 Q60 96 70 88" stroke="#c8a96e" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+</svg>

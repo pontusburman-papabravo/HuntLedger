@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Märkeskatalog – HuntLedger</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1a2e1a">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --forest: #1a2e1a;
+      --bark:   #3d2b1f;
+      --moss:   #4a6741;
+      --sage:   #7d9a6e;
+      --wheat:  #d4c5a0;
+      --cream:  #f5f0e8;
+      --bone:   #faf8f4;
+      --amber:  #c8873e;
+      --rust:   #a85d32;
+      --ink:    #1c1c1c;
+      --bronze: #cd7f32;
+      --silver: #9ea7a8;
+      --gold:   #c8a84b;
+    }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bone);
+      color: var(--ink);
+      line-height: 1.6;
+    }
+    h1,h2,h3,h4,h5 { font-family: 'Space Grotesk', sans-serif; }
+
+    /* ── Top bar ── */
+    .topbar {
+      background: var(--forest);
+      padding: 0.9rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    /* ── Guider dropdown (dark topbar variant) ── */
+    .topbar-dropdown { position: relative; }
+    .topbar-dropdown-trigger {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--sage);
+      background: none;
+      border: 1px solid rgba(125,154,110,0.35);
+      cursor: pointer;
+      padding: 0.5rem 0.9rem;
+      border-radius: 8px;
+      font-family: 'Space Grotesk', sans-serif;
+      transition: background 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .topbar-dropdown-trigger:hover { background: rgba(125,154,110,0.15); }
+    .topbar-dropdown-menu {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: calc(100% + 0.5rem);
+      background: #fff;
+      border: 1px solid rgba(61,43,31,0.1);
+      border-radius: 12px;
+      padding: 0.5rem;
+      min-width: 220px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      z-index: 200;
+    }
+    .topbar-dropdown-menu.open { display: block; }
+    .topbar-dropdown-menu a {
+      display: block;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--ink);
+      text-decoration: none;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      transition: background 0.1s;
+    }
+    .topbar-dropdown-menu a:hover { background: rgba(74,103,65,0.08); color: var(--moss); }
+    .topbar-dropdown-menu a.active { font-weight: 600; color: var(--moss); }
+    .topbar-dropdown-divider { height: 1px; background: rgba(61,43,31,0.08); margin: 0.35rem 0.5rem; }
+    .topbar-brand {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--wheat);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      text-decoration: none;
+    }
+    .topbar-brand .logo-box {
+      width: 28px; height: 28px;
+      background: var(--amber);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--forest);
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .topbar-subtitle {
+      font-size: 0.82rem;
+      color: var(--sage);
+      font-weight: 500;
+    }
+    .topbar-back {
+      font-size: 0.82rem;
+      color: var(--sage);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.5rem 0.9rem;
+      border: 1px solid rgba(125,154,110,0.35);
+      border-radius: 8px;
+      transition: background 0.15s;
+    }
+    .topbar-back:hover { background: rgba(125,154,110,0.15); }
+
+    /* ── Layout ── */
+    .page-wrap {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 5rem;
+    }
+
+    /* ── Page header ── */
+    .page-header {
+      margin-bottom: 2.5rem;
+    }
+    .page-eyebrow {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--moss);
+      margin-bottom: 0.75rem;
+    }
+    .page-title {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 700;
+      color: var(--forest);
+      letter-spacing: -1.2px;
+      line-height: 1.1;
+    }
+    .page-desc {
+      font-size: 1rem;
+      color: rgba(28,28,28,0.58);
+      margin-top: 0.9rem;
+      max-width: 580px;
+      line-height: 1.7;
+    }
+    .regulation-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 1rem;
+      padding: 0.4rem 0.8rem;
+      background: rgba(74,103,65,0.1);
+      border: 1px solid rgba(74,103,65,0.25);
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--moss);
+    }
+
+    /* ── Section headings ── */
+    .section-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--forest);
+      letter-spacing: -0.5px;
+      margin: 2.5rem 0 1.25rem;
+      padding-bottom: 0.7rem;
+      border-bottom: 2px solid var(--cream);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .section-icon {
+      width: 28px; height: 28px;
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    /* ── Badge card ── */
+    .badge-card {
+      background: #fff;
+      border: 1px solid rgba(61,43,31,0.08);
+      border-radius: 16px;
+      margin-bottom: 1.25rem;
+      overflow: hidden;
+    }
+    .badge-header {
+      padding: 1.4rem 1.6rem 1.1rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    .badge-icon-wrap {
+      flex-shrink: 0;
+      width: 52px; height: 52px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+    }
+    .badge-title-wrap { flex: 1; min-width: 0; }
+    .badge-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--forest);
+      letter-spacing: -0.3px;
+    }
+    .badge-subtitle {
+      font-size: 0.82rem;
+      color: rgba(28,28,28,0.5);
+      margin-top: 0.25rem;
+    }
+    .badge-org {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--moss);
+      background: rgba(74,103,65,0.08);
+      padding: 0.2rem 0.55rem;
+      border-radius: 12px;
+      margin-top: 0.4rem;
+      display: inline-block;
+    }
+    .badge-body {
+      padding: 0 1.6rem 1.5rem;
+    }
+
+    /* ── Tier grid (bronze/silver/gold) ── */
+    .tier-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+    .tier-card {
+      border-radius: 12px;
+      padding: 1rem 0.9rem;
+      border: 1.5px solid;
+    }
+    .tier-card.bronze { border-color: rgba(205,127,50,0.35); background: rgba(205,127,50,0.06); }
+    .tier-card.silver { border-color: rgba(158,167,168,0.4); background: rgba(158,167,168,0.07); }
+    .tier-card.gold   { border-color: rgba(200,168,75,0.4);  background: rgba(200,168,75,0.07); }
+    .tier-label {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+    }
+    .tier-label.bronze { color: var(--bronze); }
+    .tier-label.silver { color: var(--silver); }
+    .tier-label.gold   { color: var(--gold); }
+    .tier-score {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--forest);
+      line-height: 1;
+    }
+    .tier-desc {
+      font-size: 0.78rem;
+      color: rgba(28,28,28,0.55);
+      margin-top: 0.3rem;
+      line-height: 1.5;
+    }
+
+    /* ── Requirements list ── */
+    .req-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+    .req-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      font-size: 0.9rem;
+      color: rgba(28,28,28,0.7);
+      line-height: 1.5;
+    }
+    .req-list li::before {
+      content: '';
+      flex-shrink: 0;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--moss);
+      margin-top: 7px;
+    }
+    .req-list li strong { color: var(--ink); font-weight: 600; }
+
+    /* ── Note / info box ── */
+    .info-box {
+      margin-top: 1rem;
+      padding: 0.9rem 1.1rem;
+      background: rgba(200,135,62,0.07);
+      border: 1px solid rgba(200,135,62,0.2);
+      border-radius: 10px;
+      font-size: 0.85rem;
+      color: rgba(28,28,28,0.65);
+      line-height: 1.6;
+    }
+    .info-box strong { color: var(--bark); }
+
+    /* ── Calibre table ── */
+    .calibre-table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 12px;
+      border: 1px solid rgba(61,43,31,0.1);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+      min-width: 420px;
+    }
+    thead tr {
+      background: var(--forest);
+      color: var(--wheat);
+    }
+    thead th {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 600;
+      font-size: 0.8rem;
+      letter-spacing: 0.3px;
+    }
+    tbody tr:nth-child(even) { background: var(--cream); }
+    tbody tr:hover { background: rgba(74,103,65,0.05); }
+    tbody td {
+      padding: 0.7rem 1rem;
+      color: rgba(28,28,28,0.75);
+      border-bottom: 1px solid rgba(61,43,31,0.06);
+    }
+    tbody td:first-child { font-weight: 600; color: var(--ink); }
+    .tag-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.55rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .tag-pass { background: rgba(74,103,65,0.12); color: var(--moss); }
+    .tag-req  { background: rgba(200,135,62,0.12); color: var(--rust); }
+
+    /* ── Divider ── */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(61,43,31,0.1), transparent);
+      margin: 0.9rem 0;
+    }
+
+    /* ── Footer note ── */
+    .catalogue-footer {
+      margin-top: 3rem;
+      padding: 1.4rem 1.6rem;
+      background: var(--cream);
+      border-radius: 14px;
+      border: 1px solid rgba(61,43,31,0.08);
+      font-size: 0.85rem;
+      color: rgba(28,28,28,0.55);
+      line-height: 1.7;
+    }
+    .catalogue-footer strong { color: var(--bark); }
+    .catalogue-footer a { color: var(--moss); }
+
+    /* ── Mobile ── */
+    @media (max-width: 600px) {
+      .topbar { padding: 0.75rem 1rem; }
+      .page-wrap { padding: 1.5rem 1rem 4rem; }
+      .badge-header { padding: 1.1rem 1.1rem 0.8rem; gap: 0.75rem; }
+      .badge-body { padding: 0 1.1rem 1.25rem; }
+      .badge-icon-wrap { width: 44px; height: 44px; font-size: 20px; }
+      .tier-grid { grid-template-columns: 1fr; gap: 0.6rem; }
+      .tier-card { display: flex; align-items: center; gap: 1rem; }
+      .tier-score { font-size: 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="topbar-brand" href="/">
+    <div class="logo-box">H</div>
+    <span>HuntLedger</span>
+  </a>
+  <div class="topbar-dropdown">
+    <button class="topbar-dropdown-trigger" onclick="toggleBadgesMenu(event)">Guider <span style="font-size:0.7rem;opacity:0.7">▾</span></button>
+    <div class="topbar-dropdown-menu" id="badgesGuiderMenu">
+      <a href="/guider/vapenvarde">Vapenvärde</a>
+      <a href="/guider/jaktskyttemarket">Jaktskyttemärken</a>
+      <a href="/guider/handladdning">Handladdning</a>
+      <a href="/guider/jakt-och-skyttelogg">Jakt- och skyttelogg</a>
+      <a href="/guider/vapensamling">Vapensamling</a>
+      <a href="/guider/specialskytte">Specialskytte</a>
+      <div class="topbar-dropdown-divider"></div>
+      <a href="/badges" class="active">Märkeskatalog</a>
+    </div>
+  </div>
+</div>
+
+<div class="page-wrap">
+
+  <div class="page-header">
+    <div class="page-eyebrow">Svenska Jägareförbundet</div>
+    <h1 class="page-title">Märkeskatalog</h1>
+    <p class="page-desc">
+      Skjutmärken, kompetensbevis och godkännanden för svenska jägare. Krav, kaliberklass och klassificeringsregler samlade på ett ställe.
+    </p>
+    <div class="regulation-badge">
+      📋 Reglemente 2021–2024 · Jägareförbundet
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       ÄLGSKYTTEMÄRKET
+  ═══════════════════════════════════════════════ -->
+  <h2 class="section-title">
+    <span class="section-icon" style="background:rgba(26,46,26,0.1)">🦌</span>
+    Älgskyttemärket
+  </h2>
+
+  <div class="badge-card">
+    <div class="badge-header">
+      <div class="badge-icon-wrap" style="background:rgba(26,46,26,0.08)">🦌</div>
+      <div class="badge-title-wrap">
+        <div class="badge-title">Älgskyttemärket</div>
+        <div class="badge-subtitle">Skytt- &amp; skjutprovsmärke för älgjakt</div>
+        <div class="badge-org">Svenska Jägareförbundet</div>
+      </div>
+    </div>
+    <div class="badge-body">
+
+      <div class="tier-grid">
+        <div class="tier-card bronze">
+          <div class="tier-label bronze">Brons</div>
+          <div class="tier-score">30–34 p</div>
+          <div class="tier-desc">av 40 möjliga<br>varav ≥25 träffar</div>
+        </div>
+        <div class="tier-card silver">
+          <div class="tier-label silver">Silver</div>
+          <div class="tier-score">35–39 p</div>
+          <div class="tier-desc">av 40 möjliga<br>varav ≥30 träffar</div>
+        </div>
+        <div class="tier-card gold">
+          <div class="tier-label gold">Guld</div>
+          <div class="tier-score">40 p</div>
+          <div class="tier-desc">Perfekt resultat<br>Alla träffar</div>
+        </div>
+      </div>
+
+      <ul class="req-list">
+        <li><strong>Moment 1:</strong> 10 skott på stående älgfigur (avstånd 75 m)</li>
+        <li><strong>Moment 2:</strong> 10 skott på löpande älgfigur (passerskjutning, 75 m)</li>
+        <li><strong>Poäng:</strong> Max 2 poäng per skott (2 = vitalt träff, 1 = perifert träff, 0 = misse)</li>
+        <li><strong>Krav:</strong> Minst 25 träffar totalt (bruttokrav) oavsett poängnivå för godkänt</li>
+        <li><strong>Giltighetstid:</strong> Brons/Silver 5 år, Guld tidsobegränsat</li>
+        <li><strong>Kaliber:</strong> ≥6,5 mm kaliber med ≥2 700 J anslagsenergi vid 100 m</li>
+      </ul>
+
+      <div class="info-box">
+        <strong>Notera:</strong> Provet skjuts med det vapen och den ammunition som jägaren avser använda vid älgjakt. Vapnet måste vara godkänt i kaliber klass 1 eller 2. Resultatet registreras hos skjutbanan.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       PÅBYGGNADSMÄRKEN
+  ═══════════════════════════════════════════════ -->
+  <h2 class="section-title">
+    <span class="section-icon" style="background:rgba(200,135,62,0.12)">🎯</span>
+    Påbyggnadsmärken
+  </h2>
+
+  <div class="badge-card">
+    <div class="badge-header">
+      <div class="badge-icon-wrap" style="background:rgba(200,135,62,0.1)">🎯</div>
+      <div class="badge-title-wrap">
+        <div class="badge-title">Påbyggnadsmärke – Älg</div>
+        <div class="badge-subtitle">Avancerat skjutprov utöver grundmärket</div>
+        <div class="badge-org">Svenska Jägareförbundet</div>
+      </div>
+    </div>
+    <div class="badge-body">
+      <ul class="req-list">
+        <li>Kräver giltigt <strong>Älgskyttemärket (Brons)</strong> som förkunskapskrav</li>
+        <li><strong>Moment A:</strong> 5 skott stående älg, 100 m avstånd</li>
+        <li><strong>Moment B:</strong> 5 skott löpande älg, 75 m, ökad hastighet</li>
+        <li><strong>Moment C:</strong> 5 skott, reducerad siktbild (halvt mål synligt)</li>
+        <li><strong>Resultat:</strong> ≥70% poäng för godkänt, ≥90% för utmärkelse</li>
+        <li><strong>Giltighetstid:</strong> 3 år, förnyelse kräver omprov</li>
+      </ul>
+      <div class="info-box">
+        <strong>Syfte:</strong> Påbyggnadsmärket demonstrerar att jägaren klarar svårare beskjutningssituationer som uppstår i fält – halva mål, sämre ljusförhållanden och längre avstånd.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       HÖGVILTDEKALEN
+  ═══════════════════════════════════════════════ -->
+  <h2 class="section-title">
+    <span class="section-icon" style="background:rgba(61,43,31,0.1)">🏆</span>
+    Högviltdekalen
+  </h2>
+
+  <div class="badge-card">
+    <div class="badge-header">
+      <div class="badge-icon-wrap" style="background:rgba(61,43,31,0.08)">🏆</div>
+      <div class="badge-title-wrap">
+        <div class="badge-title">Högviltdekalen</div>
+        <div class="badge-subtitle">Kompetensbevis för jakt på klövvilt</div>
+        <div class="badge-org">Svenska Jägareförbundet</div>
+      </div>
+    </div>
+    <div class="badge-body">
+      <ul class="req-list">
+        <li>Kräver giltigt <strong>Älgskyttemärket (Silver eller Guld)</strong></li>
+        <li>Dokumentation av <strong>minst 3 genomförda jakttillfällen</strong> på klövvilt</li>
+        <li>Genomförd <strong>etikkurs</strong> (Jägarförbundets etik- och säkerhetsutbildning)</li>
+        <li>Giltigt <strong>jaktkort</strong> och registrerat medlemskap i Jägareförbundet</li>
+        <li>Ansökan sker hos lokalt jägarförbund med bifogat provresultat</li>
+      </ul>
+      <div class="info-box">
+        <strong>Obs:</strong> Högviltdekalen är ett frivilligt kompetensbevis – inte juridiskt krav för jakt – men visar att jägaren uppfyller höga säkerhets- och kompetenskrav.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       BJÖRNPASSET
+  ═══════════════════════════════════════════════ -->
+  <h2 class="section-title">
+    <span class="section-icon" style="background:rgba(61,43,31,0.12)">🐻</span>
+    Björnpasset
+  </h2>
+
+  <div class="badge-card">
+    <div class="badge-header">
+      <div class="badge-icon-wrap" style="background:rgba(61,43,31,0.1)">🐻</div>
+      <div class="badge-title-wrap">
+        <div class="badge-title">Björnpasset</div>
+        <div class="badge-subtitle">Obligatoriskt skjutprov för björnjakt</div>
+        <div class="badge-org">Svenska Jägareförbundet</div>
+      </div>
+    </div>
+    <div class="badge-body">
+
+      <div class="tier-grid" style="grid-template-columns: repeat(2,1fr)">
+        <div class="tier-card" style="border-color:rgba(74,103,65,0.35);background:rgba(74,103,65,0.06)">
+          <div class="tier-label" style="color:var(--moss)">GODKÄNT</div>
+          <div class="tier-score">≥80%</div>
+          <div class="tier-desc">Träffprocent på björnfigur. Giltigt 5 år.</div>
+        </div>
+        <div class="tier-card" style="border-color:rgba(200,135,62,0.35);background:rgba(200,135,62,0.06)">
+          <div class="tier-label" style="color:var(--amber)">KRAV</div>
+          <div class="tier-score">Klass 1</div>
+          <div class="tier-desc">Minst klass 1-kaliber obligatoriskt</div>
+        </div>
+      </div>
+
+      <ul class="req-list">
+        <li><strong>Provets upplägg:</strong> 10 skott på björnfigur i naturliga positioner (stående, halvt dolt)</li>
+        <li><strong>Avstånd:</strong> 50–100 m, varierar per station</li>
+        <li><strong>Kaliber (obligatoriskt):</strong> Klass 1-kaliber (se kaliberlista nedan)</li>
+        <li><strong>Anslagsenergi:</strong> Minst 4 000 J vid mynningen</li>
+        <li><strong>Resultat:</strong> ≥8 vitala träffar av 10 skott för godkänt</li>
+        <li><strong>Giltighetstid:</strong> 5 år, måste förnyas inför varje tilldelad björnlicens</li>
+        <li><strong>Förkunskap:</strong> Giltigt Älgskyttemärket rekommenderas starkt</li>
+      </ul>
+
+      <div class="info-box">
+        <strong>Lagkrav:</strong> Björnpasset är sedan 2012 <em>obligatoriskt</em> för alla som tilldelas björnlicens i Sverige. Beviset ska uppvisas för länsstyrelsen vid ansökan om licens.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       VILDSVINSPASSET
+  ═══════════════════════════════════════════════ -->
+  <h2 class="section-title">
+    <span class="section-icon" style="background:rgba(61,43,31,0.1)">🐗</span>
+    Vildsvinspasset
+  </h2>
+
+  <div class="badge-card">
+    <div class="badge-header">
+      <div class="badge-icon-wrap" style="background:rgba(61,43,31,0.08)">🐗</div>
+      <div class="badge-title-wrap">
+        <div class="badge-title">Vildsvinspasset</div>
+        <div class="badge-subtitle">Skjutprov för vildsvins- och galtjakt</div>
+        <div class="badge-org">Svenska Jägareförbundet</div>
+      </div>
+    </div>
+    <div class="badge-body">
+      <ul class="req-list">
+        <li><strong>Moment 1:</strong> 5 skott på stående vildsvinssiluett (50 m)</li>
+        <li><strong>Moment 2:</strong> 5 skott på löpande vildsvinssiluett (35 m, snabb passage)</li>
+        <li><strong>Kaliber:</strong> ≥6,5 mm med ≥2 000 J vid 100 m (klass 2 räcker)</li>
+        <li><strong>Godkänt:</strong> ≥70% träffar i vitalt område</li>
+        <li><strong>Rekommenderas:</strong> Ammunition med expanderande kula (blyfri i vissa landskap)</li>
+        <li><strong>Giltighetstid:</strong> 5 år</li>
+      </ul>
+      <div class="info-box">
+        <strong>Viktigt:</strong> Vildsvinspasset är ett frivilligt kompetensbevis, men krävs av allt fler jaktlag och markarrendatorer som villkor för deltagande i vildsvinsjakt. Provet kontrollerar framförallt förmågan att hantera det snabba passerskottet.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       NJS-MÄRKET
+  ═══════════════════════════════════════════════ -->
+  <h2 class="section-title">
+    <span class="section-icon" style="background:rgba(74,103,65,0.12)">🌿</span>
+    NJS-märket
+  </h2>
+
+  <div class="badge-card">
+    <div class="badge-header">
+      <div class="badge-icon-wrap" style="background:rgba(74,103,65,0.1)">🌿</div>
+      <div class="badge-title-wrap">
+        <div class="badge-title">NJS-märket</div>
+        <div class="badge-subtitle">Nationella Jägarskyttemärket – helhetsprov för jaktskyttar</div>
+        <div class="badge-org">NJS / Svenska Jägareförbundet</div>
+      </div>
+    </div>
+    <div class="badge-body">
+
+      <div class="tier-grid">
+        <div class="tier-card bronze">
+          <div class="tier-label bronze">Brons</div>
+          <div class="tier-score">60–69 p</div>
+          <div class="tier-desc">av 100 möjliga</div>
+        </div>
+        <div class="tier-card silver">
+          <div class="tier-label silver">Silver</div>
+          <div class="tier-score">70–84 p</div>
+          <div class="tier-desc">av 100 möjliga</div>
+        </div>
+        <div class="tier-card gold">
+          <div class="tier-label gold">Guld</div>
+          <div class="tier-score">≥85 p</div>
+          <div class="tier-desc">av 100 möjliga</div>
+        </div>
+      </div>
+
+      <ul class="req-list">
+        <li><strong>Provets upplägg:</strong> 5 grenar med varierande viltfigurer och avstånd (25–100 m)</li>
+        <li><strong>Gren 1:</strong> Rådjur – 5 skott stående, 50 m</li>
+        <li><strong>Gren 2:</strong> Älg löpande – 5 skott, passerskjutning 75 m</li>
+        <li><strong>Gren 3:</strong> Hare/räv – 5 skott, rörlig figur 30 m</li>
+        <li><strong>Gren 4:</strong> Vildsvin – 5 skott löpande, 35 m</li>
+        <li><strong>Gren 5:</strong> Valfritt vilt (lokalt tillägg) – 5 skott</li>
+        <li><strong>Kaliber:</strong> Anpassat till gren (kulgevär klass 1/2, hagelgevär för gren 3)</li>
+        <li><strong>Giltighetstid:</strong> Brons/Silver 3 år, Guld 5 år</li>
+      </ul>
+
+      <div class="info-box">
+        <strong>NJS</strong> (Nationella Jaktskytte) är ett heltäckande skytt-kompetensbevis som täcker in alla vanliga jaktformer i Sverige. Det kombinerar precision, säkerhet och etik och är det mest prestigefyllda frivilliga märket för allmänjägaren.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       KLASS-1 KALIBERLISTA
+  ═══════════════════════════════════════════════ -->
+  <h2 class="section-title">
+    <span class="section-icon" style="background:rgba(168,93,50,0.12)">🔫</span>
+    Klass 1-kaliber
+  </h2>
+
+  <p style="font-size:0.9rem;color:rgba(28,28,28,0.6);margin-bottom:1.25rem;line-height:1.7">
+    Kalibrar godkända för jakt på björn, älg och annat storväxt vilt enligt Jägareförbundets rekommendationer (reglemente 2021–2024). Grundkrav: kaliber ≥ 6,5 mm och anslagsenergi ≥ 2 700 J vid 100 m.
+  </p>
+
+  <div class="calibre-table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Kaliber</th>
+          <th>Energi vid 100 m</th>
+          <th>Typisk användning</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>6,5×55 Swedish</td>
+          <td>~2 800 J</td>
+          <td>Älg, rådjur</td>
+          <td><span class="tag-pill tag-pass">Godkänd</span></td>
+        </tr>
+        <tr>
+          <td>7×64</td>
+          <td>~3 200 J</td>
+          <td>Älg, klövvilt</td>
+          <td><span class="tag-pill tag-pass">Godkänd</span></td>
+        </tr>
+        <tr>
+          <td>7mm Rem Mag</td>
+          <td>~3 800 J</td>
+          <td>Älg, björn</td>
+          <td><span class="tag-pill tag-pass">Godkänd</span></td>
+        </tr>
+        <tr>
+          <td>.308 Winchester (7,62×51)</td>
+          <td>~3 000 J</td>
+          <td>Älg, klövvilt</td>
+          <td><span class="tag-pill tag-pass">Godkänd</span></td>
+        </tr>
+        <tr>
+          <td>.30-06 Springfield (7,62×63)</td>
+          <td>~3 600 J</td>
+          <td>Älg, björn</td>
+          <td><span class="tag-pill tag-pass">Godkänd</span></td>
+        </tr>
+        <tr>
+          <td>8×57 JS</td>
+          <td>~3 400 J</td>
+          <td>Älg, björn</td>
+          <td><span class="tag-pill tag-pass">Godkänd</span></td>
+        </tr>
+        <tr>
+          <td>9,3×62</td>
+          <td>~4 200 J</td>
+          <td>Björn, grovvilt</td>
+          <td><span class="tag-pill tag-pass">Godkänd</span></td>
+        </tr>
+        <tr>
+          <td>9,3×74R</td>
+          <td>~4 000 J</td>
+          <td>Björn, kombinationsgevär</td>
+          <td><span class="tag-pill tag-pass">Godkänd</span></td>
+        </tr>
+        <tr>
+          <td>.300 Win Mag</td>
+          <td>~4 500 J</td>
+          <td>Björn, älg på långt håll</td>
+          <td><span class="tag-pill tag-pass">Godkänd</span></td>
+        </tr>
+        <tr>
+          <td>6,5 Creedmoor</td>
+          <td>~2 700 J</td>
+          <td>Älg, rådjur</td>
+          <td><span class="tag-pill tag-pass">Godkänd</span></td>
+        </tr>
+        <tr>
+          <td>6,5 PRC</td>
+          <td>~3 100 J</td>
+          <td>Älg, björn</td>
+          <td><span class="tag-pill tag-pass">Godkänd</span></td>
+        </tr>
+        <tr>
+          <td>.243 Winchester</td>
+          <td>~2 200 J</td>
+          <td>Rådjur, räv – ej älg/björn</td>
+          <td><span class="tag-pill tag-req">Ej klass 1</span></td>
+        </tr>
+        <tr>
+          <td>5,6×52R</td>
+          <td>~1 700 J</td>
+          <td>Rådjur, hare</td>
+          <td><span class="tag-pill tag-req">Ej klass 1</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="info-box" style="margin-top:1.25rem">
+    <strong>Obs:</strong> Energivärden är approximativa och beror på kulvikt och laddning. Kontrollera alltid tillverkarens ammunition-specifikationer. Vid tveksamhet – använd en kaliber med god marginal. Blyfri ammunition kan ha avvikande energivärden. <a href="https://www.jagareforbundet.se" target="_blank" rel="noopener" style="color:var(--moss)">jagareforbundet.se</a>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       FOOTER NOTE
+  ═══════════════════════════════════════════════ -->
+  <div class="catalogue-footer">
+    <strong>Katalogversion:</strong> 2021–2024 reglemente · Svenska Jägareförbundet<br>
+    Informationen är sammanfattad från Jägareförbundets officiella reglemente. HuntLedger är inte affilierad med Svenska Jägareförbundet. Kontrollera alltid aktuella krav på
+    <a href="https://www.jagareforbundet.se" target="_blank" rel="noopener">jagareforbundet.se</a> inför prov och ansökan.<br>
+    <br>
+    <strong>Nästa version:</strong> Björnpasset 2025-reglemente publiceras Q1 2025. Kalibrerlistan uppdateras löpande. Logga dina skjutresultat i HuntLedger – provloggning och Skyttebevis-PDF kommer i nästa fas.
+  </div>
+
+</div><!-- /page-wrap -->
+
+<script>
+function toggleBadgesMenu(e) {
+  e.stopPropagation();
+  document.getElementById('badgesGuiderMenu').classList.toggle('open');
+}
+document.addEventListener('click', function() {
+  document.getElementById('badgesGuiderMenu').classList.remove('open');
+});
+</script>
+
+<!-- Polsia Analytics -->
+<script>
+(function() {
+  var slug = '__POLSIA_SLUG__';
+  if (!slug || slug === '__POLSIA_SLUG__') slug = 'huntlog';
+  var vid = localStorage.getItem('polsia_vid');
+  if (!vid) {
+    vid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random() * 16 | 0;
+      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+    localStorage.setItem('polsia_vid', vid);
+  }
+  new Image().src = 'https://polsia.com/api/beacon/pixel?s=' + encodeURIComponent(slug) + '&v=' + encodeURIComponent(vid) + '&p=' + encodeURIComponent(location.pathname);
+})();
+</script>
+</body>
+</html>

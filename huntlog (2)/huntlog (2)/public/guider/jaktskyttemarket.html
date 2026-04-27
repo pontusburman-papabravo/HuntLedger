@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>Jaktskyttemärken – HuntLedger</title>
+  <meta name="description" content="Älgskyttemärket, Björnpasset, Vildsvinspasset och NJS-märket – krav och klassificeringar samlade på ett ställe.">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1a2e1a">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root { --forest: #1a2e1a; --bark: #3d2b1f; --moss: #4a6741; --sage: #7d9a6e; --wheat: #d4c5a0; --cream: #f5f0e8; --bone: #faf8f4; --amber: #c8873e; --rust: #a85d32; --ink: #1c1c1c; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bone); color: var(--ink); line-height: 1.6; }
+    h1,h2,h3,h4 { font-family: 'Space Grotesk', sans-serif; }
+    .topbar { background: var(--forest); padding: 0.9rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; position: sticky; top: 0; z-index: 100; }
+    .topbar-brand { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.1rem; color: var(--wheat); display: flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .topbar-brand .logo-box { width: 28px; height: 28px; background: var(--amber); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--forest); font-weight: 700; font-size: 13px; }
+    .topbar-dropdown { position: relative; }
+    .topbar-dropdown-trigger { font-size: 0.82rem; font-weight: 600; color: var(--sage); background: none; border: 1px solid rgba(125,154,110,0.35); cursor: pointer; padding: 0.5rem 0.9rem; border-radius: 8px; font-family: 'Space Grotesk', sans-serif; transition: background 0.15s; display: flex; align-items: center; gap: 0.3rem; }
+    .topbar-dropdown-trigger:hover { background: rgba(125,154,110,0.15); }
+    .topbar-dropdown-menu { display: none; position: absolute; right: 0; top: calc(100% + 0.5rem); background: #fff; border: 1px solid rgba(61,43,31,0.1); border-radius: 12px; padding: 0.5rem; min-width: 220px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 200; }
+    .topbar-dropdown-menu.open { display: block; }
+    .topbar-dropdown-menu a { display: block; font-size: 0.88rem; font-weight: 500; color: var(--ink); text-decoration: none; padding: 0.5rem 0.75rem; border-radius: 8px; transition: background 0.1s; }
+    .topbar-dropdown-menu a:hover { background: rgba(74,103,65,0.08); color: var(--moss); }
+    .topbar-dropdown-menu a.active { font-weight: 600; color: var(--moss); }
+    .topbar-dropdown-divider { height: 1px; background: rgba(61,43,31,0.08); margin: 0.35rem 0.5rem; }
+    .page-wrap { max-width: 800px; margin: 0 auto; padding: 3.5rem 1.5rem 5rem; }
+    .guide-eyebrow { font-family: 'Space Grotesk', sans-serif; font-size: 0.72rem; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: var(--moss); margin-bottom: 1rem; }
+    .guide-h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 700; color: var(--forest); letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 1.25rem; }
+    .guide-ingress { font-size: 1.1rem; color: rgba(28,28,28,0.65); line-height: 1.75; max-width: 620px; margin-bottom: 2rem; }
+    .guide-h2 { font-size: 1.4rem; font-weight: 700; color: var(--forest); letter-spacing: -0.5px; margin: 2.5rem 0 0.75rem; }
+    .guide-p { font-size: 0.97rem; color: rgba(28,28,28,0.68); line-height: 1.8; max-width: 640px; margin-bottom: 1rem; }
+    .cta-block { margin: 2.25rem 0; }
+    .cta-btn { display: inline-block; background: var(--forest); color: var(--wheat); font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 0.95rem; padding: 0.85rem 1.75rem; border-radius: 10px; text-decoration: none; transition: background 0.15s; letter-spacing: 0.2px; }
+    .cta-btn:hover { background: var(--bark); }
+    .catalogue-link { display: inline-flex; align-items: center; gap: 0.35rem; margin-top: 1rem; font-size: 0.9rem; font-weight: 600; color: var(--moss); text-decoration: none; border-bottom: 1.5px solid rgba(74,103,65,0.3); padding-bottom: 1px; }
+    footer { border-top: 1px solid rgba(61,43,31,0.1); padding: 2.25rem 2rem; }
+    .footer-inner { max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .footer-brand { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 0.92rem; color: var(--bark); }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a { font-size: 0.82rem; color: rgba(28,28,28,0.45); text-decoration: none; transition: color 0.15s; }
+    .footer-links a:hover { color: var(--moss); }
+    .footer-copy { font-size: 0.78rem; color: rgba(28,28,28,0.35); }
+    @media (max-width: 640px) { .footer-inner { flex-direction: column; align-items: flex-start; } .page-wrap { padding: 2rem 1rem 4rem; } }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="topbar-brand" href="/"><div class="logo-box">H</div><span>HuntLedger</span></a>
+  <div class="topbar-dropdown">
+    <button class="topbar-dropdown-trigger" onclick="toggleMenu(event)">Guider <span style="font-size:0.7rem;opacity:0.7">▾</span></button>
+    <div class="topbar-dropdown-menu" id="guiderMenu">
+      <a href="/guider/vapenvarde">Vapenvärde</a>
+      <a href="/guider/jaktskyttemarket" class="active">Jaktskyttemärken</a>
+      <a href="/guider/handladdning">Handladdning</a>
+      <a href="/guider/jakt-och-skyttelogg">Jakt- och skyttelogg</a>
+      <a href="/guider/vapensamling">Vapensamling</a>
+      <a href="/guider/specialskytte">Specialskytte</a>
+      <div class="topbar-dropdown-divider"></div>
+      <a href="/badges">Märkeskatalog</a>
+    </div>
+  </div>
+</div>
+
+<div class="page-wrap">
+  <div class="guide-eyebrow">Guider · HuntLedger</div>
+  <h1 class="guide-h1">Svenska jaktskyttemärken</h1>
+  <p class="guide-ingress">Älgskyttemärket, Björnpasset, Vildsvinspasset och NJS-märket – krav och klassificeringar samlade på ett ställe.</p>
+
+  <div class="cta-block">
+    <a class="cta-btn" href="/">Kom igång med HuntLedger</a>
+  </div>
+
+  <h2 class="guide-h2">Varför ta jaktskyttemärken?</h2>
+  <p class="guide-p">Svenska jaktskyttemärken är en del av jägarens kompetensbevis – de visar att du skjuter säkert och etiskt med rätt kaliber och precision för det vilt du jagar. Björnpasset är lagkrav sedan 2012.</p>
+  <p class="guide-p">HuntLedger hjälper dig logga dina skyttresultat och hålla koll på giltighetstider så att du aldrig missar en förnyelse inför jaktsäsongen.</p>
+
+  <h2 class="guide-h2">Se hela märkeskatalogen</h2>
+  <p class="guide-p">Detaljerade krav för Älgskyttemärket, Björnpasset, Vildsvinspasset, NJS-märket och Klass 1-kaliberlistan hittar du i vår märkeskatalog.</p>
+  <a class="catalogue-link" href="/badges">Bläddra i märkeskatalogen →</a>
+
+  <div class="cta-block" style="margin-top:3rem">
+    <a class="cta-btn" href="/">Kom igång med HuntLedger</a>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">HuntLedger</div>
+    <div class="footer-links">
+      <a href="mailto:info@huntledger.se">Kontakt</a>
+      <a href="/privacy">Integritetspolicy</a>
+    </div>
+    <div class="footer-copy">© 2026 HuntLedger. Alla rättigheter förbehållna.</div>
+  </div>
+</footer>
+
+<script>
+function toggleMenu(e) { e.stopPropagation(); document.getElementById('guiderMenu').classList.toggle('open'); }
+document.addEventListener('click', function() { document.getElementById('guiderMenu').classList.remove('open'); });
+</script>
+<script>
+(function() {
+  var slug = 'huntlog'; var vid = localStorage.getItem('polsia_vid');
+  if (!vid) { vid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16); }); localStorage.setItem('polsia_vid', vid); }
+  new Image().src = 'https://polsia.com/api/beacon/pixel?s=' + encodeURIComponent(slug) + '&v=' + encodeURIComponent(vid) + '&p=' + encodeURIComponent(location.pathname);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="<%= lang === 'en' ? 'en' : 'sv' %>">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+    <title><%= title %> - HuntLedger</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <!-- Mobile Header (hidden on desktop) -->
+    <header class="mobile-header" id="mobileHeader">
+        <div class="mobile-header-logo">
+            <div class="mobile-header-logo-icon">H</div>
+            <span class="mobile-header-logo-text">HuntLedger</span>
+        </div>
+        <button class="hamburger-btn" id="hamburgerBtn" aria-label="Menu" aria-expanded="false" aria-controls="sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </header>
+
+    <!-- Overlay backdrop -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">H</div>
+                <div class="sidebar-logo-text">HuntLedger</div>
+            </div>
+
+            <nav>
+                <ul class="sidebar-nav">
+                    <% routes.forEach(route => { %>
+                        <li class="sidebar-nav-item">
+                            <a href="<%= route.route %>?lang=<%= lang %>" class="sidebar-nav-link <%= currentRoute === route.route ? 'active' : '' %>">
+                                <span class="sidebar-icon">
+                                    <% if (route.icon === 'dashboard') { %>📊
+                                    <% } else if (route.icon === 'sessions') { %>🎯
+                                    <% } else if (route.icon === 'locations') { %>📍
+                                    <% } else if (route.icon === 'weapons') { %>🔫
+                                    <% } else if (route.icon === 'ammunition') { %>💣
+                                    <% } else if (route.icon === 'reports') { %>📄
+                                    <% } else if (route.icon === 'settings') { %>⚙️
+                                    <% } %>
+                                </span>
+                                <%= getLabel(route) %>
+                            </a>
+                        </li>
+                    <% }); %>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content" role="main">

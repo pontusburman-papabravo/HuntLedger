@@ -1,0 +1,667 @@
+<%- include('layout-top') %>
+
+<style>
+/* ── Sessions view — page-specific styles ─────────────────────────────── */
+/* shot-empty, shot-5s, shot-4, etc. color rules live in main.css          */
+
+/* Back link: extend main.css .back-link with color + no underline */
+.back-link { color: var(--moss); text-decoration: none; }
+
+/* Small badge variant used in mobile card list */
+.session-type-badge-sm { font-size: 0.7rem; padding: 0.15rem 0.5rem; }
+
+/* Session detail header: type badge row */
+.session-header-meta { color: var(--moss); margin-bottom: 0.75rem; }
+.session-meta-detail { margin-left: 0.5rem; color: var(--sage); }
+
+/* Section heading for weather (edit form) */
+.session-section-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--moss);
+    font-weight: 700;
+    margin: 1.25rem 0 0.75rem;
+    border-bottom: 1px solid var(--wheat);
+    padding-bottom: 0.35rem;
+}
+
+/* Compact card: notes and weather in detail view */
+.card-compact {
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    background: var(--bone);
+    border: 1px solid var(--wheat);
+}
+.card-compact p { margin: 0; color: var(--ink); font-size: 0.9rem; }
+
+/* Weather detail display */
+.weather-section-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--sage);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+.weather-row { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+.weather-item { font-size: 0.9rem; color: var(--ink); }
+
+/* Modal icon — danger/delete variant */
+.modal-icon-danger { background: rgba(168, 93, 50, 0.1); color: var(--rust); }
+
+/* Delete (trash) action button in series rows */
+.series-delete-btn {
+    color: var(--rust);
+    border-color: var(--rust);
+    background: white;
+    font-size: 1.1rem;
+    padding: 0.35rem 0.6rem;
+}
+
+/* Shot picker cancel button */
+.shot-picker-cancel-btn {
+    background: var(--cream);
+    color: var(--forest);
+    border: 1px solid var(--wheat);
+}
+
+/* Add-series button: default color (hover already in main.css) */
+.add-series-btn { color: var(--moss); border-color: var(--sage); }
+
+/* Empty state text in summary bar */
+.summary-empty { color: var(--sage); font-style: italic; }
+
+/* Generic no-detail message */
+.no-detail-text { color: var(--sage); font-style: italic; }
+
+/* Hide helper — for JS-controlled display elements */
+.d-none { display: none; }
+</style>
+
+<%
+// ── Template helpers ──────────────────────────────────────────────────────────
+function shotDisplayHtml(val) {
+  if (!val) return '';
+  if (val === '5^1') return '5<sup>1</sup>';
+  return val;
+}
+function shotCssClass(val) {
+  if (!val) return 'shot-empty';
+  const map = {'5^1':'shot-5s','5':'shot-5','4':'shot-4','3':'shot-3','T':'shot-t','O':'shot-o','X':'shot-x'};
+  return map[val] || 'shot-empty';
+}
+function seriesResultHtml(s, lang) {
+  if (!s.complete) {
+    const left = [s.shot1,s.shot2,s.shot3,s.shot4].filter(v=>!v).length;
+    return '<span class="series-result pending">' + left + (lang==='en'?' missing':(left===1?' skott kvar':' skott kvar')) + '</span>';
+  }
+  if (!s.approved) {
+    return '<span class="series-result failed">' + (lang==='en'?'✗ Failed':'✗ Underkänd') + '</span>';
+  }
+  let txt = '✓ ' + s.points + 'p';
+  if (s.superscriptOnes > 0) txt += ' · ' + s.superscriptOnes + '×5¹';
+  return '<span class="series-result approved">' + txt + '</span>';
+}
+const langStr = lang || 'sv';
+const t = {
+  title:          langStr==='en'?'Sessions':'Aktiviteter',
+  newBtn:         langStr==='en'?'+ New session':'+ Ny aktivitet',
+  noSessions:     langStr==='en'?'No sessions yet':'Inga aktiviteter ännu',
+  noSessionsDesc: langStr==='en'?'Start logging your shooting sessions.':'Börja logga dina aktiviteter.',
+  titleCol:       langStr==='en'?'Title':'Titel',
+  typeCol:        langStr==='en'?'Type':'Typ',
+  dateCol:        langStr==='en'?'Date':'Datum',
+  locationCol:    langStr==='en'?'Location':'Plats',
+  actionsCol:     langStr==='en'?'Actions':'Åtgärder',
+  viewBtn:        langStr==='en'?'View':'Visa',
+  editBtn:        langStr==='en'?'Edit':'Redigera',
+  deleteBtn:      langStr==='en'?'Delete':'Radera',
+  backBtn:        langStr==='en'?'← Back':'← Tillbaka',
+  saveBtn:        langStr==='en'?'Save':'Spara',
+  cancelBtn:      langStr==='en'?'Cancel':'Avbryt',
+  titleLabel:     langStr==='en'?'Title':'Titel',
+  typeLabel:      langStr==='en'?'Session type':'Aktivitetstyp',
+  dateLabel:      langStr==='en'?'Date':'Datum',
+  locationLabel:  langStr==='en'?'Location':'Plats',
+  notesLabel:     langStr==='en'?'Notes':'Anteckningar',
+  noLocation:     langStr==='en'?'No location':'Ingen plats',
+  exportCsv:      langStr==='en'?'Export CSV':'Exportera CSV',
+  addSeries:      langStr==='en'?'+ Add series':'+ Lägg till serie',
+  deleteSeriesConfirm: langStr==='en'?'Delete this series?':'Radera den här serien?',
+  seriesTitle:    langStr==='en'?'Series':'Serier',
+  shotPickerTitle:langStr==='en'?'Select shot value':'Välj skottvärde',
+  pickCancel:     langStr==='en'?'Cancel':'Avbryt',
+  summaryLabel:   langStr==='en'?'Summary':'Summering',
+  seriesWord:     langStr==='en'?'series':'serier',
+  approvedWord:   langStr==='en'?'approved':'godkända',
+  pointsWord:     langStr==='en'?'points':'poäng',
+  deleteSessionConfirm: langStr==='en'?'Delete this session? This cannot be undone.':'Radera aktiviteten? Det går inte att ångra.',
+  deleteSessionTitle: langStr==='en'?'Delete session':'Radera aktivitet',
+  deleteConfirmText: langStr==='en'?'Are you sure you want to delete this session? This cannot be undone.':'Är du säker på att du vill radera den här aktiviteten? Det går inte att ångra.',
+  confirmDelete: langStr==='en'?'Delete':'Radera',
+  noCompletedSeries: langStr==='en'?'No completed series in {year}':'Inga genomförda serier under {år}',
+  weatherTitle: langStr==='en'?'Weather conditions':'Väderförhållanden',
+  tempLabel: langStr==='en'?'Temperature (°C)':'Temperatur (°C)',
+  humidityLabel: langStr==='en'?'Humidity (%)':'Relativ luftfuktighet (%)',
+  airPressureLabel: langStr==='en'?'Air pressure (mbar)':'Lufttryck (mbar)',
+};
+%>
+
+<% if (action === 'list') { %>
+
+    <header class="page-header">
+        <h1><%- t.title %></h1>
+        <p><%= langStr==='en'?'Track all your shooting and hunting sessions.':'Logga dina skytte- och jaktaktiviteter.' %></p>
+        <div class="button-group">
+            <a href="/sessions/new?lang=<%= langStr %>" class="btn btn-primary"><%- t.newBtn %></a>
+            <a href="/sessions/export.csv?lang=<%= langStr %>" class="btn btn-secondary"><%- t.exportCsv %></a>
+        </div>
+    </header>
+
+    <% if (sessions.length === 0) { %>
+        <div class="empty-state">
+            <div class="empty-state-icon">🎯</div>
+            <div class="empty-state-title"><%- t.noSessions %></div>
+            <div class="empty-state-text"><%- t.noSessionsDesc %></div>
+        </div>
+    <% } else { %>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th><%- t.titleCol %></th>
+                        <th><%- t.typeCol %></th>
+                        <th><%- t.dateCol %></th>
+                        <th><%- t.locationCol %></th>
+                        <th><%- t.actionsCol %></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% sessions.forEach(function(s) { %>
+                        <tr>
+                            <td><strong><%= s.title %></strong></td>
+                            <td>
+                                <span class="session-type-badge <%= s.session_type %>">
+                                    <%= s.type_label %>
+                                </span>
+                            </td>
+                            <td><%= new Date(s.date).toLocaleDateString(langStr==='en'?'en-US':'sv-SE') %></td>
+                            <td><%= s.location_name || '–' %></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="/sessions/<%= s.id %>?lang=<%= langStr %>" class="action-btn"><%- t.viewBtn %></a>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+        <div class="mobile-card-list">
+            <% sessions.forEach(function(s) { %>
+                <div class="mobile-card-item">
+                    <div class="mobile-card-title"><%= s.title %></div>
+                    <div class="mobile-card-meta">
+                        <span class="session-type-badge session-type-badge-sm <%= s.session_type %>"><%= s.type_label %></span>
+                        <span><%= new Date(s.date).toLocaleDateString(langStr==='en'?'en-US':'sv-SE') %></span>
+                        <% if (s.location_name) { %><span><%= s.location_name %></span><% } %>
+                    </div>
+                    <div class="mobile-card-actions">
+                        <a href="/sessions/<%= s.id %>?lang=<%= langStr %>" class="action-btn"><%- t.viewBtn %></a>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+    <% } %>
+
+<% } else if (action === 'new' || action === 'edit') { %>
+
+    <header class="page-header">
+        <a href="/sessions?lang=<%= langStr %>" class="back-link"><%- t.backBtn %></a>
+        <h1><%= title %></h1>
+    </header>
+
+    <div class="card">
+        <form method="POST" action="<%= action==='new' ? '/sessions' : '/sessions/'+session.id+'/update' %>?lang=<%= langStr %>">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label"><%- t.titleLabel %></label>
+                    <input type="text" name="title" class="form-control" value="<%= session.title || '' %>" required placeholder="<%= langStr==='en'?'Session name':'Aktivitetens namn' %>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><%- t.typeLabel %></label>
+                    <select name="session_type" class="form-control">
+                        <% Object.entries(SESSION_TYPES).forEach(function(entry) {
+                            const key = entry[0], val = entry[1];
+                            const label = langStr==='en' ? val.en : val.sv;
+                            const selected = (session.session_type || 'hunt') === key ? 'selected' : '';
+                        %>
+                            <option value="<%= key %>" <%= selected %>><%= label %></option>
+                        <% }); %>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label"><%- t.dateLabel %></label>
+                    <input type="date" name="date" class="form-control" value="<%= session.date ? new Date(session.date).toISOString().slice(0,10) : new Date().toISOString().slice(0,10) %>" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><%- t.locationLabel %></label>
+                    <select name="location_id" class="form-control">
+                        <option value=""><%- t.noLocation %></option>
+                        <% (locations || []).forEach(function(loc) {
+                            const sel = session.location_id == loc.id ? 'selected' : '';
+                        %>
+                            <option value="<%= loc.id %>" <%= sel %>><%= loc.name %></option>
+                        <% }); %>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label"><%- t.notesLabel %></label>
+                <textarea name="notes" class="form-control" rows="3"><%= session.notes || '' %></textarea>
+            </div>
+            <!-- Weather fields -->
+            <div class="session-section-title">
+                <%- t.weatherTitle %>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label"><%- t.tempLabel %></label>
+                    <input type="number" name="temperature" class="form-control" step="0.1"
+                        value="<%= session.temperature != null ? session.temperature : '' %>"
+                        placeholder="<%= langStr === 'en' ? 'e.g. 5' : 't.ex. 5' %>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><%- t.humidityLabel %></label>
+                    <input type="number" name="humidity" class="form-control" step="1" min="0" max="100"
+                        value="<%= session.humidity != null ? session.humidity : '' %>"
+                        placeholder="<%= langStr === 'en' ? 'e.g. 75' : 't.ex. 75' %>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><%- t.airPressureLabel %></label>
+                    <input type="number" name="air_pressure" class="form-control" step="0.1" min="800" max="1100"
+                        value="<%= session.air_pressure != null ? session.air_pressure : '' %>"
+                        placeholder="<%= langStr === 'en' ? 'e.g. 1013' : 't.ex. 1013' %>">
+                </div>
+            </div>
+            <div class="button-group button-group-top">
+                <button type="submit" class="btn btn-primary"><%- t.saveBtn %></button>
+                <a href="/sessions?lang=<%= langStr %>" class="btn btn-secondary"><%- t.cancelBtn %></a>
+            </div>
+        </form>
+    </div>
+
+<% } else if (action === 'detail') { %>
+
+    <header class="page-header">
+        <a href="/sessions?lang=<%= langStr %>" class="back-link"><%- t.backBtn %></a>
+        <h1><%= session.title %></h1>
+        <p class="session-header-meta">
+            <span class="session-type-badge <%= session.session_type %>"><%= session.type_label %></span>
+            <span class="session-meta-detail">
+                <%= new Date(session.date).toLocaleDateString(langStr==='en'?'en-US':'sv-SE') %>
+                <% if (session.location_name) { %> · <%= session.location_name %><% } %>
+            </span>
+        </p>
+        <div class="button-group">
+            <a href="/sessions/<%= session.id %>/edit?lang=<%= langStr %>" class="btn btn-secondary"><%- t.editBtn %></a>
+            <button type="button" class="btn btn-danger" onclick="openDeleteModal()"><%- t.deleteBtn %></button>
+        </div>
+    </header>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModalOverlay" class="modal-overlay" role="dialog" aria-modal="true" aria-label="<%- t.deleteSessionTitle %>" onclick="if(event.target===this)closeDeleteModal()">
+        <div class="modal-box">
+            <div class="modal-icon modal-icon-danger">&#9888;</div>
+            <div class="modal-title"><%- t.deleteSessionTitle %></div>
+            <div class="modal-body"><%- t.deleteConfirmText %></div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn"><%- t.confirmDelete %></button>
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()"><%- t.cancelBtn %></button>
+            </div>
+        </div>
+    </div>
+
+    <% if (session.notes) { %>
+        <div class="card card-compact">
+            <p><%= session.notes %></p>
+        </div>
+    <% } %>
+
+    <% if (session.temperature != null || session.humidity != null || session.air_pressure != null) { %>
+        <div class="card card-compact">
+            <div class="weather-section-label"><%- t.weatherTitle %></div>
+            <div class="weather-row">
+                <% if (session.temperature != null) { %>
+                <span class="weather-item">🌡 <%= session.temperature %>°C</span>
+                <% } %>
+                <% if (session.humidity != null) { %>
+                <span class="weather-item">💧 <%= session.humidity %>%</span>
+                <% } %>
+                <% if (session.air_pressure != null) { %>
+                <span class="weather-item">🌬 <%= session.air_pressure %> mbar</span>
+                <% } %>
+            </div>
+        </div>
+    <% } %>
+
+    <% if (session.session_type === 'moose_range') { %>
+        <!-- ── Moose Range session ──────────────────────────────────────────── -->
+
+        <div id="sessionSummary" class="session-summary">
+            <% if (summary && summary.count > 0) { %>
+                <span><strong id="summaryCount"><%= summary.count %></strong> <%- t.seriesWord %></span>
+                <span><strong id="summaryApproved"><%= summary.approved %></strong> <%- t.approvedWord %></span>
+                <span><strong id="summaryPoints"><%= summary.points %></strong> <%- t.pointsWord %></span>
+                <% if (summary.superscriptOnes > 0) { %>
+                    <span><strong id="summarySup"><%= summary.superscriptOnes %></strong>× 5¹</span>
+                <% } else { %>
+                    <span class="d-none" id="supRow"><strong id="summarySup">0</strong>× 5¹</span>
+                <% } %>
+            <% } else { %>
+                <span class="summary-empty"><%= langStr==='en'?'No series logged yet — add your first below.':'Inga serier loggade ännu — lägg till den första nedan.' %></span>
+                <span class="d-none" id="summaryCount">0</span>
+                <span class="d-none" id="summaryApproved">0</span>
+                <span class="d-none" id="summaryPoints">0</span>
+                <span class="d-none" id="summarySup">0</span>
+            <% } %>
+        </div>
+
+        <div id="seriesList" class="series-list">
+            <% series.forEach(function(s) { %>
+                <div class="series-row" id="series-<%= s.id %>">
+                    <div class="shot-cells">
+                        <% [0,1,2,3].forEach(function(i) {
+                            const shotKey = 'shot' + (i+1);
+                            const val = s[shotKey];
+                            const cls = shotCssClass(val);
+                            const html = shotDisplayHtml(val);
+                        %>
+                            <button class="shot-cell <%= cls %>" onclick="openShotPicker(<%= s.id %>, <%= i %>)" type="button" aria-label="<%= langStr==='en'?'Shot '+(i+1)+': '+(val||'empty'):'Skott '+(i+1)+': '+(val||'tomt') %>"><%- html || '–' %></button>
+                        <% }); %>
+                    </div>
+                    <%- seriesResultHtml(s, langStr) %>
+                    <div class="series-actions">
+                        <button type="button" class="action-btn series-delete-btn" onclick="deleteSeries(<%= s.id %>)" title="<%= langStr==='en'?'Delete series':'Radera serie' %>">🗑</button>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+
+        <button type="button" id="addSeriesBtn" class="add-series-btn" onclick="addSeries()">
+            <%- t.addSeries %>
+        </button>
+
+        <!-- ── Shot Picker Modal ────────────────────────────────────────── -->
+        <div id="shotPickerOverlay" class="shot-picker-overlay" role="dialog" aria-modal="true" aria-label="<%- t.shotPickerTitle %>" onclick="if(event.target===this)closeShotPicker()">
+            <div class="shot-picker-modal">
+                <div class="shot-picker-title"><%- t.shotPickerTitle %></div>
+                <div class="shot-picker-buttons">
+                    <button type="button" class="shot-val-btn shot-5s"    onclick="selectShot('5^1')">5<sup>1</sup></button>
+                    <button type="button" class="shot-val-btn shot-5"     onclick="selectShot('5')">5</button>
+                    <button type="button" class="shot-val-btn shot-4"     onclick="selectShot('4')">4</button>
+                    <button type="button" class="shot-val-btn shot-3"     onclick="selectShot('3')">3</button>
+                    <button type="button" class="shot-val-btn shot-t"     onclick="selectShot('T')">T</button>
+                    <button type="button" class="shot-val-btn shot-o"     onclick="selectShot('O')">O</button>
+                    <button type="button" class="shot-val-btn shot-x"     onclick="selectShot('X')">X</button>
+                    <button type="button" class="shot-val-btn shot-clear" onclick="clearShot()"><%- langStr==='en'?'Clear':'Rensa' %></button>
+                </div>
+                <button type="button" class="shot-picker-cancel shot-picker-cancel-btn" onclick="closeShotPicker()"><%- t.pickCancel %></button>
+            </div>
+        </div>
+
+        <script>
+        (function() {
+            var _activeSeries = null;
+            var _activeShot   = null;
+            var _lang = '<%= langStr %>';
+            var _sessionId = <%= session.id %>;
+
+            window.openShotPicker = function(seriesId, shotIndex) {
+                _activeSeries = seriesId;
+                _activeShot   = shotIndex;
+                var overlay = document.getElementById('shotPickerOverlay');
+                overlay.style.display = 'flex';
+                overlay.classList.add('visible');
+            };
+
+            window.closeShotPicker = function() {
+                var overlay = document.getElementById('shotPickerOverlay');
+                overlay.style.display = '';
+                overlay.classList.remove('visible');
+                _activeSeries = null;
+                _activeShot   = null;
+            };
+
+            window.clearShot = function() {
+                // Send null / empty to clear shot — use a special value "__clear__"
+                doSetShot('__clear__');
+            };
+
+            window.selectShot = function(value) {
+                doSetShot(value);
+            };
+
+            function doSetShot(value) {
+                if (_activeSeries === null || _activeShot === null) return;
+                var sid = _activeSeries, si = _activeShot;
+                closeShotPicker();
+
+                // If clearing, we POST with value=null — handle on backend
+                // Actually send DELETE request for the field — easier: POST with value='' means clear
+                var body = { shotIndex: si, value: value };
+
+                fetch('/api/series/' + sid + '/shot', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.ok) {
+                        updateSeriesRow(sid, data.series);
+                        updateSummary(data.summary);
+                    }
+                })
+                .catch(function(e) { console.error('Shot update failed:', e); });
+            }
+
+            window.addSeries = function() {
+                fetch('/api/sessions/' + _sessionId + '/series', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.ok) {
+                        var list = document.getElementById('seriesList');
+                        list.insertAdjacentHTML('beforeend', buildSeriesRowHtml(data.series));
+                        updateSummary(data.summary);
+                        // Show main summary if hidden
+                        showSummaryBar(data.summary);
+                    }
+                })
+                .catch(function(e) { console.error('Add series failed:', e); });
+            };
+
+            window.deleteSeries = function(seriesId) {
+                var msg = '<%= langStr==="en"?"Delete this series?":"Radera den här serien?" %>';
+                if (!confirm(msg)) return;
+                fetch('/api/series/' + seriesId, { method: 'DELETE' })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.ok) {
+                        var row = document.getElementById('series-' + seriesId);
+                        if (row) row.remove();
+                        updateSummary(data.summary);
+                    }
+                })
+                .catch(function(e) { console.error('Delete series failed:', e); });
+            };
+
+            // Single source of truth for shot-cell color — returns CSS class name.
+            // Matching CSS rules (.shot-empty, .shot-5s, etc.) live in main.css.
+            var _shotColorClasses = ['shot-empty','shot-5s','shot-5','shot-4','shot-3','shot-t','shot-o','shot-x'];
+            function shotClass(val) {
+                if (!val || val === '__clear__') return 'shot-empty';
+                var map = {'5^1':'shot-5s','5':'shot-5','4':'shot-4','3':'shot-3','T':'shot-t','O':'shot-o','X':'shot-x'};
+                return map[val] || 'shot-empty';
+            }
+
+            function shotDisplayHtml(val) {
+                if (!val || val === '__clear__') return '–';
+                if (val === '5^1') return '5<sup>1</sup>';
+                return val;
+            }
+
+            function seriesResultHtml(series) {
+                var shots = [series.shot1, series.shot2, series.shot3, series.shot4];
+                var complete = shots.every(function(s){ return s && s !== '__clear__'; });
+                if (!complete) {
+                    var left = shots.filter(function(s){ return !s || s==='__clear__'; }).length;
+                    return '<span class="series-result pending">' + left + (_lang==='en'?' missing':' kvar') + '</span>';
+                }
+                var disq = shots.some(function(s){ return s==='O'||s==='X'; });
+                if (disq) return '<span class="series-result failed">✗ ' + (_lang==='en'?'Failed':'Underkänd') + '</span>';
+                var pts = shots.reduce(function(sum,s){
+                    var map={'5^1':5,'5':5,'4':4,'3':3,'T':0,'O':0,'X':0};
+                    return sum+(map[s]||0);
+                },0);
+                var sup = shots.filter(function(s){ return s==='5^1'; }).length;
+                var txt = '✓ ' + pts + 'p';
+                if (sup > 0) txt += ' · ' + sup + '×5¹';
+                return '<span class="series-result approved">' + txt + '</span>';
+            }
+
+            function buildSeriesRowHtml(s) {
+                var shots = [s.shot1, s.shot2, s.shot3, s.shot4];
+                var cells = shots.map(function(val, i) {
+                    return '<button class="shot-cell ' + shotClass(val) + '" type="button" onclick="openShotPicker('+s.id+','+i+')" aria-label="shot '+(i+1)+'">' + shotDisplayHtml(val) + '</button>';
+                }).join('');
+
+                return '<div class="series-row" id="series-'+s.id+'">' +
+                    '<div class="shot-cells">' + cells + '</div>' +
+                    seriesResultHtml(s) +
+                    '<div class="series-actions">' +
+                        '<button type="button" class="action-btn series-delete-btn" onclick="deleteSeries('+s.id+')" title="'+(_lang==='en'?'Delete series':'Radera serie')+'">🗑</button>' +
+                    '</div>' +
+                '</div>';
+            }
+
+            function updateSeriesRow(seriesId, data) {
+                var row = document.getElementById('series-' + seriesId);
+                if (!row) return;
+                var shots = [data.shot1, data.shot2, data.shot3, data.shot4];
+                var cells = row.querySelectorAll('.shot-cell');
+                shots.forEach(function(val, i) {
+                    var cell = cells[i];
+                    if (!cell) return;
+                    // Swap shot color class — remove all color classes then add the new one
+                    cell.classList.remove.apply(cell.classList, _shotColorClasses);
+                    cell.classList.add(shotClass(val));
+                    cell.removeAttribute('style'); // clear any legacy inline style
+                    cell.innerHTML = shotDisplayHtml(val);
+                });
+                var result = row.querySelector('.series-result');
+                if (result) {
+                    var newResult = document.createElement('div');
+                    newResult.innerHTML = seriesResultHtml(data);
+                    var newSpan = newResult.querySelector('.series-result');
+                    result.parentNode.replaceChild(newSpan, result);
+                }
+            }
+
+            function showSummaryBar(summary) {
+                var bar = document.getElementById('sessionSummary');
+                if (!bar) return;
+                // Replace placeholder if it shows the empty-state italic span
+                var italic = bar.querySelector('span[style*="italic"]');
+                if (italic) {
+                    bar.innerHTML =
+                        '<span><strong id="summaryCount">0</strong> <%- t.seriesWord %></span>' +
+                        '<span><strong id="summaryApproved">0</strong> <%- t.approvedWord %></span>' +
+                        '<span><strong id="summaryPoints">0</strong> <%- t.pointsWord %></span>' +
+                        '<span id="supRow"><strong id="summarySup">0</strong>× 5¹</span>';
+                }
+                updateSummary(summary);
+            }
+
+            function updateSummary(summary) {
+                if (!summary) return;
+                var el;
+                el = document.getElementById('summaryCount');   if(el) el.textContent = summary.count;
+                el = document.getElementById('summaryApproved');if(el) el.textContent = summary.approved;
+                el = document.getElementById('summaryPoints');  if(el) el.textContent = summary.points;
+                el = document.getElementById('summarySup');     if(el) el.textContent = summary.superscriptOnes;
+                // Show/hide superscript row
+                var supRow = document.getElementById('supRow');
+                if (supRow) {
+                    supRow.style.display = summary.superscriptOnes > 0 ? '' : 'none';
+                }
+            }
+
+            // Close on Escape
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') closeShotPicker();
+            });
+        })();
+        </script>
+
+<script>
+(function() {
+    var _deleteForm = null;
+
+    window.openDeleteModal = function() {
+        var modal = document.getElementById('deleteModalOverlay');
+        if (!modal) return;
+        modal.style.display = 'flex';
+        modal.classList.add('visible');
+        // Build the form action from the session URL
+        var sessionId = <%= session.id %>;
+        _deleteForm = document.createElement('form');
+        _deleteForm.method = 'POST';
+        _deleteForm.action = '/sessions/' + sessionId + '/delete?lang=<%= langStr %>';
+        document.body.appendChild(_deleteForm);
+    };
+
+    window.closeDeleteModal = function() {
+        var modal = document.getElementById('deleteModalOverlay');
+        if (!modal) return;
+        modal.style.display = '';
+        modal.classList.remove('visible');
+        if (_deleteForm) {
+            _deleteForm.remove();
+            _deleteForm = null;
+        }
+    };
+
+    // Confirm delete button
+    var confirmBtn = document.getElementById('confirmDeleteBtn');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', function() {
+            if (_deleteForm) {
+                _deleteForm.submit();
+            }
+        });
+    }
+
+    // Close on Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeDeleteModal();
+    });
+})();
+</script>
+
+    <% } else { %>
+        <!-- Generic session detail (non-moose_range) -->
+        <div class="card">
+            <p class="no-detail-text"><%= langStr==='en'?'No additional details for this session type.':'Inga ytterligare detaljer för den här sessionstypen.' %></p>
+        </div>
+    <% } %>
+
+<% } %>
+
+<%- include('layout-bottom') %>
